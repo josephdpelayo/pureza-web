@@ -1,24 +1,23 @@
-const { v2: cloudinary } = require('cloudinary');
+const { createClient } = require('@supabase/supabase-js');
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 module.exports = async (_req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
   try {
-    const result = await cloudinary.search
-      .expression('folder:galeria')
-      .sort_by('created_at', 'desc')
-      .max_results(30)
-      .execute();
+    const { data, error } = await supabase.storage
+      .from('galeria')
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
 
-    const images = result.resources.map(r => ({
-      url: r.secure_url,
-      public_id: r.public_id,
-    }));
+    if (error) throw error;
+
+    const images = (data || [])
+      .filter(f => f.name !== '.emptyFolderPlaceholder')
+      .map(f => ({
+        url: `${process.env.SUPABASE_URL}/storage/v1/object/public/galeria/${f.name}`,
+      }));
 
     res.setHeader('Cache-Control', 's-maxage=60');
     res.json({ images });

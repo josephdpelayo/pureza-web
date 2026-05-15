@@ -2,6 +2,6 @@
   "name": "pureza-web",
   "version": "1.0.0",
   "dependencies": {
-    "cloudinary": "^2.5.1"
+    "@supabase/supabase-js": "^2.49.4"
   }
 }
