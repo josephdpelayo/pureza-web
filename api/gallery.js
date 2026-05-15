@@ -15,7 +15,7 @@ module.exports = async (_req, res) => {
     if (!r.ok) return res.status(500).json({ error: data });
 
     const images = (Array.isArray(data) ? data : [])
-      .filter(f => f.name && f.name !== '.emptyFolderPlaceholder')
+      .filter(f => f.name && f.name !== '.emptyFolderPlaceholder' && !/\.heic$/i.test(f.name))
       .map(f => ({ url: `${baseUrl}/storage/v1/object/public/${encodeURIComponent(BUCKET)}/${encodeURIComponent(f.name)}` }));
 
     res.setHeader('Cache-Control', 's-maxage=60');
