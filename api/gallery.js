@@ -10,19 +10,11 @@ module.exports = async (_req, res) => {
         'apikey': key,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prefix: '', limit: 100, sortBy: { column: 'created_at', order: 'desc' } }),
+      body: JSON.stringify({ prefix: '', limit: 100 }),
     });
 
     const data = await r.json();
-
-    if (!r.ok) return res.status(500).json({ error: data });
-
-    const images = (Array.isArray(data) ? data : [])
-      .filter(f => f.name && f.name !== '.emptyFolderPlaceholder')
-      .map(f => ({ url: `${baseUrl}/storage/v1/object/public/galeria/${encodeURIComponent(f.name)}` }));
-
-    res.setHeader('Cache-Control', 's-maxage=60');
-    res.json({ images });
+    res.json({ status: r.status, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
