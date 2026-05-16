@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador — PUREZA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a40d0;--blue-dark:#1e3a8a;--blue-mid:#2563eb;
+  --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LAYOUT ── */
+#layout{display:flex;min-height:100vh}
+#form-panel{
+  width:420px;flex-shrink:0;background:var(--white);
+  border-right:1px solid var(--border);overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+#quote-panel{
+  flex:1;background:#dde6f0;display:flex;flex-direction:column;
+  align-items:center;padding:24px 20px;overflow-y:auto;
+}
+
+/* ── FORM PANEL ── */
+.fp-head{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.fp-head img{height:34px;width:auto}
+.fp-head-title{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--gray)}
+.fp-body{padding:16px 20px;flex:1;overflow-y:auto}
+.fp-section{margin-bottom:18px}
+.fp-sec-hd{
+  font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:10px;
+}
+.fp-sec-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
+/* Client search */
+.cs-wrap{position:relative;margin-bottom:12px}
+.cs-wrap input{
+  width:100%;padding:9px 12px 9px 34px;
+  border:1px solid var(--border);border-radius:8px;font-size:13px;
+  font-family:var(--font);outline:none;background:var(--bg);color:var(--text);
+  transition:border-color .15s
+}
+.cs-wrap input:focus{border-color:var(--blue);background:var(--white)}
+.cs-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--gray);width:14px;height:14px;pointer-events:none}
+.cs-drop{
+  position:absolute;top:calc(100%+4px);left:0;right:0;
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,.1);z-index:100;overflow:hidden;
+  max-height:220px;overflow-y:auto;display:none;
+}
+.cs-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.cs-item:last-child{border-bottom:none}
+.cs-item:hover{background:var(--bg)}
+.cs-item-name{font-size:13px;font-weight:600}
+.cs-item-sub{font-size:11px;color:var(--gray);margin-top:1px}
+
+/* Fields */
+.field{margin-bottom:10px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+.field input{
+  width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+  transition:border-color .15s;background:var(--white)
+}
+.field input:focus{border-color:var(--blue)}
+
+/* Items */
+.items-cols{display:grid;grid-template-columns:1fr 52px 76px 26px;gap:5px;margin-bottom:4px}
+.items-cols span{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray)}
+.item-row{display:grid;grid-template-columns:1fr 52px 76px 26px;gap:5px;margin-bottom:6px;align-items:center}
+.item-row input{
+  padding:7px 8px;border:1px solid var(--border);border-radius:7px;
+  font-size:12px;font-family:var(--font);color:var(--text);outline:none;width:100%;
+  transition:border-color .15s;background:var(--white)
+}
+.item-row input:focus{border-color:var(--blue)}
+.item-row input[type=number]{text-align:center;-moz-appearance:textfield}
+.item-row input[type=number]::-webkit-inner-spin-button{display:none}
+.btn-del{
+  width:26px;height:26px;background:none;border:1px solid var(--border);
+  border-radius:6px;color:var(--gray);cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s
+}
+.btn-del:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626}
+.btn-add{
+  background:var(--blue);color:var(--white);border:none;border-radius:6px;
+  padding:5px 12px;font-size:11px;font-weight:700;font-family:var(--font);
+  letter-spacing:.06em;cursor:pointer;transition:opacity .15s
+}
+.btn-add:active{opacity:.8}
+
+/* Save toggle */
+.save-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray);cursor:pointer;margin-top:8px;user-select:none}
+.save-row input{accent-color:var(--blue);cursor:pointer}
+
+/* Descuento */
+.desc-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.desc-row label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);white-space:nowrap}
+.desc-row input{
+  width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s
+}
+.desc-row input:focus{border-color:var(--blue)}
+
+/* Mini totals */
+.mini-totals{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:12px}
+.mt-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--gray)}
+.mt-row.main{font-weight:800;font-size:14px;color:var(--text);border-top:1px solid var(--border);margin-top:5px;padding-top:7px}
+
+/* Buttons */
+.fp-actions{padding:0 20px 20px;display:flex;gap:8px}
+.btn-nueva{
+  background:var(--bg);color:var(--text);border:1px solid var(--border);
+  border-radius:10px;padding:13px 14px;font-size:12px;font-weight:700;
+  font-family:var(--font);cursor:pointer;white-space:nowrap;transition:border-color .15s
+}
+.btn-nueva:hover{border-color:#94a3b8}
+.btn-ver{
+  flex:1;background:var(--blue);color:var(--white);border:none;
+  border-radius:10px;padding:13px;font-size:13px;font-weight:800;
+  font-family:var(--font);letter-spacing:.04em;cursor:pointer;transition:background .15s
+}
+.btn-ver:hover{background:#1430a0}
+
+/* ── QUOTE PANEL ── */
+.qa-bar{
+  display:flex;justify-content:flex-end;gap:8px;
+  width:100%;max-width:794px;margin-bottom:12px
+}
+.btn-print{
+  background:var(--blue);color:var(--white);border:none;border-radius:8px;
+  padding:10px 20px;font-size:12px;font-weight:800;font-family:var(--font);
+  cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s
+}
+.btn-print:hover{background:#1430a0}
+.btn-print svg{flex-shrink:0}
+
+/* ── QUOTE DOC ── */
+.q{
+  width:794px;min-height:1123px;background:var(--white);
+  position:relative;overflow:hidden;padding:52px 52px 44px;
+  box-shadow:0 4px 32px rgba(0,0,0,.18);font-family:var(--font);color:var(--text);
+  display:flex;flex-direction:column;
+}
+
+/* Corner decorations */
+.deco-tr{position:absolute;top:0;right:0;pointer-events:none}
+.deco-tr::before{
+  content:'';display:block;width:0;height:0;
+  border-style:solid;border-width:0 130px 110px 0;
+  border-color:transparent rgba(30,58,138,.12) transparent transparent;
+}
+.deco-tr::after{
+  content:'';position:absolute;top:0;right:0;
+  width:90px;height:70px;background:var(--blue-dark);
+  clip-path:polygon(100% 0,100% 100%,0 0);
+}
+.deco-tr2{
+  position:absolute;top:0;right:0;pointer-events:none;
+  width:56px;height:44px;background:var(--blue-mid);
+  clip-path:polygon(100% 0,100% 100%,0 0);
+}
+.deco-bl{position:absolute;bottom:0;left:0;pointer-events:none}
+.deco-bl::before{
+  content:'';display:block;width:0;height:0;
+  border-style:solid;border-width:80px 0 0 100px;
+  border-color:transparent transparent transparent rgba(30,58,138,.1);
+}
+.deco-bl::after{
+  content:'';position:absolute;bottom:0;left:0;
+  width:64px;height:52px;background:var(--blue-dark);
+  clip-path:polygon(0 0,0 100%,100% 100%);
+}
+.deco-bl2{
+  position:absolute;bottom:0;left:0;pointer-events:none;
+  width:40px;height:32px;background:var(--blue-mid);
+  clip-path:polygon(0 0,0 100%,100% 100%);
+}
+
+/* Logo */
+.q-logo{height:52px;width:auto;margin-bottom:30px;display:block}
+
+/* Title */
+.q-title{font-size:36px;font-weight:900;color:var(--blue-dark);line-height:1.1;margin-bottom:26px}
+
+/* Info grid */
+.q-info{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:26px}
+.q-info-lbl{font-size:12px;font-weight:700;color:var(--blue-mid);margin-bottom:7px;border-bottom:1.5px solid var(--blue-mid);padding-bottom:4px}
+.q-info p{font-size:12.5px;line-height:1.75;color:var(--text)}
+
+/* Table */
+.q-twrap{position:relative;flex:1}
+.q-wm{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:80px;font-weight:900;letter-spacing:.3em;
+  color:rgba(0,0,0,.05);pointer-events:none;z-index:0;white-space:nowrap;
+}
+table.qt{width:100%;border-collapse:collapse;position:relative;z-index:1;font-size:12px}
+table.qt thead tr{background:var(--blue-dark)}
+table.qt thead th{
+  padding:10px 12px;font-weight:700;font-size:11px;
+  letter-spacing:.05em;color:var(--white);text-align:left
+}
+table.qt thead th:not(:first-child){text-align:center}
+table.qt tbody tr{border-bottom:1px solid var(--border)}
+table.qt tbody td{padding:9px 12px;font-size:12px}
+table.qt tbody td:not(:first-child){text-align:center}
+.q-empty td{height:30px}
+
+/* Subtotals */
+.q-subs{border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.q-sub-row{
+  display:flex;justify-content:space-between;
+  padding:7px 12px;font-size:12px;border-bottom:1px solid var(--border);
+}
+.q-sub-row span:last-child{font-weight:600;min-width:80px;text-align:right}
+.q-total-row{
+  display:flex;justify-content:space-between;
+  padding:10px 12px;background:var(--blue-dark);color:var(--white);font-size:13px;font-weight:800;
+}
+.q-total-row span:last-child{min-width:80px;text-align:right}
+
+/* Conditions */
+.q-conds{margin-top:24px}
+.q-conds-title{font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:5px}
+.q-conds-text{font-size:11px;color:var(--blue-mid);line-height:1.9}
+
+/* Footer */
+.q-foot{
+  margin-top:24px;padding-top:14px;border-top:1px solid var(--border);
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;
+}
+.q-foot-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text)}
+.q-foot-ic{width:14px;height:14px;flex-shrink:0;display:flex;align-items:center}
+.q-foot-ic svg{width:14px;height:14px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:860px){
+  #layout{flex-direction:column}
+  #form-panel{width:100%;border-right:none;border-bottom:1px solid var(--border)}
+  #quote-panel{padding:16px 12px}
+  .q{width:100%;min-height:auto;padding:28px 22px 30px}
+  .q-title{font-size:26px}
+  .q-info{grid-template-columns:1fr}
+}
+
+/* ── PRINT ── */
+@media print{
+  @page{size:A4 portrait;margin:0}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body,html{background:#fff}
+  #form-panel,.qa-bar{display:none!important}
+  #layout,#quote-panel{display:block;padding:0;background:#fff}
+  .q{
+    width:210mm;min-height:297mm;
+    box-shadow:none;padding:14mm 16mm 12mm;
+  }
+}
+</style>
+</head>
+<body>
+<div id="layout">
+
+<!-- ══ FORM PANEL ══════════════════════════════════════════════ -->
+<div id="form-panel">
+  <div class="fp-head">
+    <img src="/logo.png" alt="PUREZA">
+    <span class="fp-head-title">Cotizador</span>
+  </div>
+  <div class="fp-body">
+
+    <!-- Cliente -->
+    <div class="fp-section">
+      <div class="fp-sec-hd">Cliente</div>
+
+      <div class="cs-wrap">
+        <svg class="cs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="cs-input" placeholder="Buscar cliente guardado..." autocomplete="off"
+          oninput="searchClients(this.value)" onfocus="openDrop()">
+        <div class="cs-drop" id="cs-drop"></div>
+      </div>
+
+      <div class="field"><label>Nombre</label><input type="text" id="f-nombre" placeholder="Nombre del cliente" oninput="updateQ()"></div>
+      <div class="field"><label>Domicilio</label><input type="text" id="f-domicilio" placeholder="Colonia o dirección" oninput="updateQ()"></div>
+      <div class="field"><label>Teléfono</label><input type="tel" id="f-tel" placeholder="669 123 45 67" oninput="updateQ()"></div>
+
+      <label class="save-row">
+        <input type="checkbox" id="f-guardar" checked>
+        Guardar / actualizar cliente
+      </label>
+    </div>
+
+    <!-- Servicios -->
+    <div class="fp-section">
+      <div class="fp-sec-row">
+        <div class="fp-sec-hd" style="margin-bottom:0">Servicios</div>
+        <button class="btn-add" onclick="addItem()">+ Agregar</button>
+      </div>
+      <div style="height:8px"></div>
+      <div class="items-cols">
+        <span>Servicio</span>
+        <span style="text-align:center">Cant.</span>
+        <span style="text-align:center">Precio</span>
+        <span></span>
+      </div>
+      <div id="items-list"></div>
+    </div>
+
+    <!-- Descuento + totales -->
+    <div class="fp-section">
+      <div class="desc-row">
+        <label>Descuento $</label>
+        <input type="number" id="f-desc" placeholder="0" min="0" oninput="updateQ()">
+      </div>
+      <div class="mini-totals" id="mini-totals"></div>
+    </div>
+
+  </div><!-- /fp-body -->
+
+  <div class="fp-actions">
+    <button class="btn-nueva" onclick="newQuote()">↺ Nueva</button>
+    <button class="btn-ver" onclick="generar()">Ver cotización →</button>
+  </div>
+</div>
+
+<!-- ══ QUOTE PANEL ═════════════════════════════════════════════ -->
+<div id="quote-panel">
+  <div class="qa-bar">
+    <button class="btn-print" onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir / Guardar PDF
+    </button>
+  </div>
+
+  <!-- La cotización -->
+  <div class="q" id="q-doc">
+    <div class="deco-tr"></div><div class="deco-tr2"></div>
+    <div class="deco-bl"></div><div class="deco-bl2"></div>
+
+    <img src="/logo.png" alt="PUREZA" class="q-logo">
+
+    <div class="q-title">Cotización de<br>Servicios</div>
+
+    <div class="q-info">
+      <div>
+        <div class="q-info-lbl">Datos del Cliente</div>
+        <p id="q-cliente">—</p>
+      </div>
+      <div>
+        <div class="q-info-lbl">Datos del Emisor</div>
+        <p>Pureza|Limpieza Profesional de Tapicería<br>Mazatlán, Sin.<br>669 993 72 00<br>purezamzt@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="q-twrap">
+      <div class="q-wm">PUREZA</div>
+      <table class="qt">
+        <thead>
+          <tr>
+            <th style="width:44%">Producto / Servicio</th>
+            <th style="width:13%">Cantidad</th>
+            <th style="width:21%">Precio Unit.</th>
+            <th style="width:22%">Total</th>
+          </tr>
+        </thead>
+        <tbody id="q-tbody"></tbody>
+      </table>
+      <div class="q-subs">
+        <div class="q-sub-row"><span>Subtotal</span><span id="q-sub">$0</span></div>
+        <div class="q-sub-row"><span>Descuentos</span><span id="q-desc">$0</span></div>
+      </div>
+      <div class="q-total-row"><span>Total</span><span id="q-total">$0</span></div>
+    </div>
+
+    <div class="q-conds">
+      <div class="q-conds-title">Condiciones</div>
+      <div class="q-conds-text">
+        Forma de pago: Transferencia bancaria / Depósito / Efectivo<br>
+        Vigencia de la cotización: 7 días naturales
+      </div>
+    </div>
+
+    <div class="q-foot">
+      <div class="q-foot-item">
+        <div class="q-foot-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></div>
+        Purezamzt
+      </div>
+      <div class="q-foot-item">
+        <div class="q-foot-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg></div>
+        Pureza Limpieza de Tapicería Mazatlán
+      </div>
+      <div class="q-foot-item">
+        <div class="q-foot-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+        669 993 72 00
+      </div>
+      <div class="q-foot-item">
+        <div class="q-foot-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        Mazatlán Sinaloa
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+<script>
+// ── State ─────────────────────────────────────────────────────
+let clients = [];
+let items = [];
+let selectedId = null;
+
+// ── API ───────────────────────────────────────────────────────
+async function loadClients() {
+  try {
+    const r = await fetch('/api/clients');
+    if(!r.ok) return;
+    const d = await r.json();
+    clients = d.clients || [];
+  } catch(e) { clients = []; }
+}
+
+async function saveClientAPI(nombre, domicilio, telefono) {
+  if(!nombre.trim()) return;
+  try {
+    const body = {nombre, domicilio, telefono};
+    if(selectedId) body.id = selectedId;
+    const r = await fetch('/api/clients', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body),
+    });
+    const d = await r.json();
+    if(d.client) selectedId = d.client.id;
+    await loadClients();
+  } catch(e){}
+}
+
+// ── Client search dropdown ────────────────────────────────────
+function openDrop() { searchClients(document.getElementById('cs-input').value); }
+
+function searchClients(val) {
+  const drop = document.getElementById('cs-drop');
+  const q = val.trim().toLowerCase();
+  const list = q ? clients.filter(c => c.nombre.toLowerCase().includes(q)) : clients.slice(0,10);
+  if(!list.length){ drop.style.display='none'; return; }
+  drop.innerHTML = list.map(c=>`
+    <div class="cs-item" onclick="selectClient('${c.id}')">
+      <div class="cs-item-name">${esc(c.nombre)}</div>
+      <div class="cs-item-sub">${[c.domicilio,c.telefono].filter(Boolean).map(esc).join(' · ')}</div>
+    </div>`).join('');
+  drop.style.display = 'block';
+}
+
+function selectClient(id) {
+  const c = clients.find(x=>x.id===id); if(!c) return;
+  selectedId = c.id;
+  document.getElementById('cs-input').value = c.nombre;
+  document.getElementById('f-nombre').value = c.nombre||'';
+  document.getElementById('f-domicilio').value = c.domicilio||'';
+  document.getElementById('f-tel').value = c.telefono||'';
+  document.getElementById('cs-drop').style.display = 'none';
+  updateQ();
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.cs-wrap'))
+    document.getElementById('cs-drop').style.display='none';
+});
+
+// ── Items ─────────────────────────────────────────────────────
+function addItem(desc='', qty=1, price='') {
+  items.push({id:Date.now(), desc, qty, price});
+  renderItems();
+  updateQ();
+}
+function removeItem(id) {
+  items = items.filter(i=>i.id!==id);
+  renderItems(); updateQ();
+}
+function setItem(id, field, val) {
+  const it = items.find(i=>i.id===id); if(!it) return;
+  if(field==='qty') it.qty = Math.max(1, parseInt(val)||1);
+  else if(field==='price') it.price = val===''?'':parseFloat(val)||0;
+  else it.desc = val;
+  updateQ();
+}
+function renderItems() {
+  document.getElementById('items-list').innerHTML = items.map(it=>`
+    <div class="item-row">
+      <input type="text" value="${esc(it.desc)}" placeholder="Servicio..."
+        oninput="setItem(${it.id},'desc',this.value)">
+      <input type="number" value="${it.qty}" min="1"
+        oninput="setItem(${it.id},'qty',this.value)">
+      <input type="number" value="${it.price}" min="0" placeholder="0"
+        oninput="setItem(${it.id},'price',this.value)">
+      <button class="btn-del" onclick="removeItem(${it.id})">×</button>
+    </div>`).join('');
+}
+
+// ── Totals ────────────────────────────────────────────────────
+function totals() {
+  const sub = items.reduce((s,i)=>s+(i.qty*(parseFloat(i.price)||0)),0);
+  const desc = parseFloat(document.getElementById('f-desc').value)||0;
+  return {sub, desc, total: Math.max(0, sub-desc)};
+}
+function fmt(n){ return '$'+Math.round(n).toLocaleString('es-MX'); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Update quote preview ──────────────────────────────────────
+function updateQ() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const dom    = document.getElementById('f-domicilio').value.trim();
+  const tel    = document.getElementById('f-tel').value.trim();
+
+  const lines = [];
+  if(nombre) lines.push('Nombre: '+nombre);
+  if(dom)    lines.push('Domicilio: '+dom);
+  if(tel)    lines.push('Número: '+tel);
+  document.getElementById('q-cliente').innerHTML = lines.join('<br>')||'—';
+
+  const {sub, desc, total} = totals();
+  const MIN = 6;
+  const dataRows = items.map(i=>{
+    const t = i.qty*(parseFloat(i.price)||0);
+    return `<tr>
+      <td>${esc(i.desc)||'—'}</td>
+      <td>${i.qty}</td>
+      <td>${parseFloat(i.price)>0?fmt(parseFloat(i.price)):'—'}</td>
+      <td>${t>0?fmt(t):'—'}</td>
+    </tr>`;
+  }).join('');
+  const empty = Array(Math.max(0,MIN-items.length))
+    .fill('<tr class="q-empty"><td></td><td></td><td></td><td></td></tr>').join('');
+  document.getElementById('q-tbody').innerHTML = dataRows + empty;
+
+  document.getElementById('q-sub').textContent   = fmt(sub);
+  document.getElementById('q-desc').textContent  = fmt(desc);
+  document.getElementById('q-total').textContent = fmt(total);
+
+  document.getElementById('mini-totals').innerHTML = `
+    <div class="mt-row"><span>Subtotal</span><span>${fmt(sub)}</span></div>
+    ${desc>0?`<div class="mt-row"><span>Descuento</span><span>-${fmt(desc)}</span></div>`:''}
+    <div class="mt-row main"><span>Total</span><span>${fmt(total)}</span></div>`;
+}
+
+// ── Actions ───────────────────────────────────────────────────
+async function generar() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const dom    = document.getElementById('f-domicilio').value.trim();
+  const tel    = document.getElementById('f-tel').value.trim();
+  if(document.getElementById('f-guardar').checked && nombre)
+    await saveClientAPI(nombre, dom, tel);
+  document.getElementById('q-doc').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function newQuote() {
+  selectedId = null;
+  ['cs-input','f-nombre','f-domicilio','f-tel','f-desc'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  items = [];
+  addItem(); addItem(); addItem();
+}
+
+// ── Init ──────────────────────────────────────────────────────
+loadClients();
+addItem(); addItem(); addItem();
+updateQ();
+</script>
+</body>
+</html>
