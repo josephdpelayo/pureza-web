@@ -257,20 +257,32 @@ table.qt tbody td:not(:first-child){text-align:center}
 
 /* ── PRINT ── */
 @media print{
-  @page{size:A4 portrait;margin:10mm 14mm}
+  @page{size:A4 portrait;margin:5mm 8mm}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body,html{background:#fff}
   #form-panel,.qa-bar{display:none!important}
   #layout,#quote-panel{display:block;padding:0;background:#fff}
   .q{
-    width:100%;
-    box-shadow:none;padding:0;
-    min-height:unset;
+    width:100%;display:block;overflow:visible;
+    box-shadow:none;padding:0;min-height:unset;
   }
-  .q-title{font-size:28px;margin-bottom:18px}
-  .q-info{margin-bottom:18px}
-  .q-conds{margin-top:16px}
-  .q-foot{margin-top:16px}
+  .q-logo{max-height:36px;margin-bottom:10px}
+  .q-title{font-size:22px;margin-bottom:10px}
+  .q-info{margin-bottom:10px;gap:12px}
+  .q-info p{font-size:11px;line-height:1.45}
+  .q-info-lbl{font-size:11px;margin-bottom:4px}
+  table.qt thead th{padding:6px 10px;font-size:10px}
+  table.qt tbody td{padding:5px 10px;font-size:11px}
+  .q-empty td{height:20px}
+  .q-sub-row{padding:4px 10px;font-size:11px}
+  .q-total-row{padding:6px 10px;font-size:12px}
+  .q-conds{margin-top:8px}
+  .q-conds-title{font-size:10px}
+  .q-conds-text{font-size:10px;line-height:1.5}
+  .q-foot{margin-top:8px;padding-top:6px}
+  .q-foot-item{font-size:10px}
+  .q-foot-ic{width:12px;height:12px}
+  .q-foot-ic svg{width:12px;height:12px}
 }
 </style>
 </head>
