@@ -11,13 +11,13 @@ async function getBalance() {
   const [sR, gR, cR] = await Promise.all([
     fetch(`${URL}/rest/v1/servicios_cobrados?select=cobrado_por,monto`, { headers: hdrs() }),
     fetch(`${URL}/rest/v1/pureza_gastos?select=pagado_por,monto`, { headers: hdrs() }),
-    fetch(`${URL}/rest/v1/cortes?select=reparto_emmanuel,reparto_jeebe,fondo_ahorro,caja_chica`, { headers: hdrs() }),
+    fetch(`${URL}/rest/v1/cortes?select=reparto_emmanuel,reparto_jeebe,fondo_ahorro`, { headers: hdrs() }),
   ]);
   const servicios = await sR.json();
   const gastos    = await gR.json();
   const cortes    = await cR.json();
 
-  const bal = { emmanuel: 0, jeebe: 0, banco: 0, ahorro: 0, caja_chica: 0 };
+  const bal = { emmanuel: 0, jeebe: 0, banco: 0, ahorro: 0 };
 
   if (Array.isArray(servicios)) {
     for (const s of servicios) bal[s.cobrado_por] = (bal[s.cobrado_por] || 0) + Number(s.monto);
@@ -27,10 +27,10 @@ async function getBalance() {
   }
   if (Array.isArray(cortes)) {
     for (const c of cortes) {
-      bal.emmanuel   -= Number(c.reparto_emmanuel);
-      bal.jeebe      -= Number(c.reparto_jeebe);
-      bal.ahorro     += Number(c.fondo_ahorro);
-      bal.caja_chica += Number(c.caja_chica || 0);
+      bal.emmanuel -= Number(c.reparto_emmanuel);
+      bal.jeebe    -= Number(c.reparto_jeebe);
+      bal.banco    -= Number(c.fondo_ahorro);
+      bal.ahorro   += Number(c.fondo_ahorro);
     }
   }
   return bal;
@@ -105,13 +105,14 @@ module.exports = async (req, res) => {
         return res.json({ gastos: (await r.json()) || [] });
       }
       if (req.method === 'POST') {
-        const { tipo: tipoGasto, descripcion, monto, pagado_por, fecha } = req.body || {};
+        const { tipo: tipoGasto, descripcion, monto, pagado_por, fecha, comprobante_url } = req.body || {};
         if (!tipoGasto || !monto || !pagado_por) return res.status(400).json({ error: 'tipo, monto y pagado_por requeridos' });
         const body = {
-          tipo:        tipoGasto,
-          descripcion: descripcion || null,
-          monto:       Number(monto),
+          tipo:            tipoGasto,
+          descripcion:     descripcion || null,
+          monto:           Number(monto),
           pagado_por,
+          comprobante_url: comprobante_url || null,
           fecha: fecha || new Date().toISOString().split('T')[0],
         };
         const r = await fetch(`${URL}/rest/v1/pureza_gastos`, {
