@@ -413,6 +413,16 @@ table.qt tbody td:not(:first-child){text-align:center}
 
 </div><!-- /layout -->
 <script>
+// ── Auth ──────────────────────────────────────────────────────
+(function(){
+  const KEY='pureza-auth', PWD='Pureza2000';
+  if(localStorage.getItem(KEY)!==PWD){
+    const input=prompt('Contraseña:');
+    if(input!==PWD){document.body.innerHTML='';location.href='/';}
+    else localStorage.setItem(KEY,PWD);
+  }
+})();
+
 // ── State ─────────────────────────────────────────────────────
 let clients = [];
 let items = [];
