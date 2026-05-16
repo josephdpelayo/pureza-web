@@ -125,12 +125,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   font-family:var(--font);cursor:pointer;white-space:nowrap;transition:border-color .15s
 }
 .btn-nueva:hover{border-color:#94a3b8}
+.btn-guardar{
+  background:#16a34a;color:var(--white);border:none;border-radius:10px;
+  padding:13px 14px;font-size:12px;font-weight:700;font-family:var(--font);
+  cursor:pointer;white-space:nowrap;transition:opacity .15s;
+}
+.btn-guardar:hover{opacity:.85}
 .btn-ver{
   flex:1;background:var(--blue);color:var(--white);border:none;
   border-radius:10px;padding:13px;font-size:13px;font-weight:800;
   font-family:var(--font);letter-spacing:.04em;cursor:pointer;transition:background .15s
 }
 .btn-ver:hover{background:#1430a0}
+.toast-cot{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#0f172a;color:#fff;padding:11px 20px;border-radius:8px;
+  font-size:13px;font-weight:700;z-index:9999;transition:transform .3s;white-space:nowrap;
+}
+.toast-cot.show{transform:translateX(-50%) translateY(0)}
+.toast-cot.green{background:#16a34a}
 
 /* ── QUOTE PANEL ── */
 .qa-bar{
@@ -294,6 +307,7 @@ table.qt tbody td:not(:first-child){text-align:center}
   <div class="fp-head">
     <img src="/logo.png" alt="PUREZA">
     <span class="fp-head-title">Cotizador</span>
+    <a href="/finanzas.html" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Finanzas →</a>
   </div>
   <div class="fp-body">
 
@@ -347,7 +361,8 @@ table.qt tbody td:not(:first-child){text-align:center}
 
   <div class="fp-actions">
     <button class="btn-nueva" onclick="newQuote()">↺ Nueva</button>
-    <button class="btn-ver" onclick="generar()">Ver cotización →</button>
+    <button class="btn-guardar" onclick="guardarCotizacion()">Guardar</button>
+    <button class="btn-ver" onclick="generar()">Ver →</button>
   </div>
 </div>
 
@@ -598,6 +613,43 @@ function newQuote() {
   });
   items = [];
   addItem(); addItem(); addItem();
+}
+
+// ── Guardar cotización ────────────────────────────────────────
+async function guardarCotizacion() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const { sub, desc, total } = totals();
+  const body = {
+    cliente_id: selectedId || null,
+    cliente_nombre: nombre || null,
+    items: items.map(i => ({
+      desc: i.desc, qty: i.qty,
+      price: parseFloat(i.price)||0,
+      total: i.qty*(parseFloat(i.price)||0),
+    })),
+    subtotal: sub, descuento: desc, total,
+  };
+  if(document.getElementById('f-guardar').checked && nombre)
+    await saveClientAPI(nombre, document.getElementById('f-domicilio').value.trim(), document.getElementById('f-tel').value.trim());
+  try {
+    const r = await fetch('/api/cotizaciones', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),
+    });
+    const d = await r.json();
+    const folio = d.cotizacion?.folio || '—';
+    showToastCot('✓ Guardada como ' + folio, 'green');
+  } catch(e) {
+    showToastCot('Error al guardar cotización');
+  }
+}
+
+function showToastCot(msg, type='') {
+  let t = document.getElementById('toast-cot');
+  if(!t){ t=document.createElement('div'); t.id='toast-cot'; t.className='toast-cot'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = 'toast-cot show' + (type?' '+type:'');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.className='toast-cot', 3000);
 }
 
 // ── Init ──────────────────────────────────────────────────────

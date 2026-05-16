@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzas — PUREZA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a40d0;--blue-dark:#1e3a8a;--blue-mid:#2563eb;
+  --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
+  --green:#16a34a;--red:#dc2626;--red-bg:#fee2e2;
+  --purple:#7c3aed;--teal:#0891b2;
+}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:56px;
+  background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:12px;
+}
+.nav-logo{display:flex;align-items:center;text-decoration:none;margin-right:4px}
+.nav-logo img{height:30px;width:auto}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto}
+.nav-tab{
+  padding:7px 14px;border-radius:6px;border:none;background:none;
+  font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:.04em;
+  color:var(--gray);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.nav-tab:hover{background:var(--bg);color:var(--text)}
+.nav-tab.active{background:var(--blue-mid);color:var(--white)}
+.nav-link{
+  display:flex;align-items:center;gap:6px;text-decoration:none;
+  font-size:12px;font-weight:700;color:var(--gray);padding:7px 12px;
+  border-radius:6px;border:1px solid var(--border);transition:all .15s;white-space:nowrap;flex-shrink:0;
+}
+.nav-link:hover{color:var(--text);border-color:#94a3b8}
+
+/* ── MAIN ── */
+main{padding-top:56px;min-height:100vh}
+.tab-panel{display:none;padding:24px 20px;max-width:1200px;margin:0 auto}
+.tab-panel.active{display:block}
+
+/* ── BALANCE CARDS ── */
+.balance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:800px){.balance-grid{grid-template-columns:repeat(2,1fr)}}
+.balance-card{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;
+}
+.bc-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px}
+.bc-amount{font-size:26px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.bc-amount.emmanuel{color:var(--blue-mid)}
+.bc-amount.jeebe{color:var(--purple)}
+.bc-amount.banco{color:var(--teal)}
+.bc-amount.ahorro{color:var(--green)}
+.bc-sub{font-size:10px;color:var(--gray);margin-top:4px}
+
+/* ── SECTION HEAD ── */
+.section-head{
+  font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:12px;
+}
+
+/* ── ACTIVITY ── */
+.activity-list{display:flex;flex-direction:column;gap:6px}
+.activity-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--white);border:1px solid var(--border);border-radius:8px;
+}
+.ai-badge{
+  width:28px;height:28px;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:15px;font-weight:900;flex-shrink:0;
+}
+.ai-badge.ingreso{background:rgba(22,163,74,.1);color:var(--green)}
+.ai-badge.gasto{background:rgba(220,38,38,.08);color:var(--red)}
+.ai-info{flex:1;min-width:0}
+.ai-desc{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-meta{font-size:11px;color:var(--gray);margin-top:2px}
+.ai-amount{font-weight:800;font-size:13px;white-space:nowrap;flex-shrink:0}
+.ai-amount.ingreso{color:var(--green)}
+.ai-amount.gasto{color:var(--red)}
+
+/* ── TWO PANEL ── */
+.two-panel{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.two-panel{grid-template-columns:1fr}}
+
+/* ── FORM CARD ── */
+.form-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px}
+.fc-title{font-size:13px;font-weight:800;letter-spacing:.06em;margin-bottom:16px;color:var(--text)}
+
+/* ── FIELDS ── */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+.field input,.field select{
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+  background:var(--white);transition:border-color .15s;
+}
+.field input:focus,.field select:focus{border-color:var(--blue-mid)}
+
+/* ── SEGMENTED CONTROL ── */
+.seg-ctrl{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{
+  flex:1;min-width:70px;padding:8px 8px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;background:var(--white);color:var(--gray);transition:all .15s;text-align:center;
+}
+.seg-btn:hover{border-color:#94a3b8;color:var(--text)}
+.seg-btn.sel-emmanuel{border-color:var(--blue-mid);background:rgba(37,99,235,.08);color:var(--blue-mid)}
+.seg-btn.sel-jeebe{border-color:var(--purple);background:rgba(124,58,237,.08);color:var(--purple)}
+.seg-btn.sel-banco{border-color:var(--teal);background:rgba(8,145,178,.08);color:var(--teal)}
+.seg-btn.sel-active{border-color:var(--blue-mid);background:rgba(37,99,235,.08);color:var(--blue-mid)}
+
+/* ── SUBMIT ── */
+.btn-submit{
+  width:100%;background:var(--blue-mid);color:var(--white);border:none;
+  border-radius:8px;padding:12px;font-size:13px;font-weight:800;
+  font-family:var(--font);cursor:pointer;transition:background .15s;letter-spacing:.04em;margin-top:4px;
+}
+.btn-submit:hover{background:#1430a0}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── LIST CARD ── */
+.list-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.lc-head{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.lc-title{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.lc-total{font-size:14px;font-weight:900;color:var(--text)}
+.lc-body{max-height:560px;overflow-y:auto}
+.list-row{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;
+  border-bottom:1px solid var(--border);
+}
+.list-row:last-child{border-bottom:none}
+.lr-info{flex:1;min-width:0}
+.lr-main{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px}
+.lr-sub{font-size:11px;color:var(--gray)}
+.lr-amount{font-weight:800;font-size:13px;white-space:nowrap;flex-shrink:0}
+.lr-amount.ingreso{color:var(--green)}
+.lr-amount.gasto{color:var(--red)}
+.btn-del-row{
+  width:26px;height:26px;background:none;border:1px solid var(--border);
+  border-radius:6px;cursor:pointer;font-size:14px;color:var(--gray);
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.btn-del-row:hover{background:var(--red-bg);border-color:#fca5a5;color:var(--red)}
+
+/* ── DATE FILTER ── */
+.date-filter{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
+.date-filter .field{margin-bottom:0;flex:1;min-width:120px}
+.date-filter .field label{font-size:9px}
+.btn-filter{
+  padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;
+  background:var(--white);font-family:var(--font);font-size:11px;font-weight:700;
+  cursor:pointer;color:var(--text);white-space:nowrap;transition:all .15s;flex-shrink:0;
+}
+.btn-filter:hover{border-color:#94a3b8}
+
+/* ── TAGS ── */
+.tipo-tag{
+  display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:rgba(37,99,235,.08);color:var(--blue-mid);
+}
+.cob-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:4px}
+.cob-tag.emmanuel{background:rgba(37,99,235,.1);color:var(--blue-mid)}
+.cob-tag.jeebe{background:rgba(124,58,237,.1);color:var(--purple)}
+.cob-tag.banco{background:rgba(8,145,178,.1);color:var(--teal)}
+
+/* ── COTIZACIÓN SEARCH DROP ── */
+.cs-wrap{position:relative}
+.cs-drop{
+  position:absolute;top:calc(100%+4px);left:0;right:0;
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,.1);z-index:200;overflow:hidden;
+  max-height:220px;overflow-y:auto;display:none;
+}
+.cs-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border)}
+.cs-item:last-child{border-bottom:none}
+.cs-item:hover{background:var(--bg)}
+.cs-item-folio{font-size:12px;font-weight:800;color:var(--blue-mid)}
+.cs-item-sub{font-size:11px;color:var(--gray);margin-top:1px}
+
+/* ── CORTE ── */
+.corte-range{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+.corte-range .field{margin-bottom:0;flex:1;min-width:140px}
+.btn-calc{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:8px;
+  padding:10px 20px;font-size:13px;font-weight:800;font-family:var(--font);
+  cursor:pointer;white-space:nowrap;transition:background .15s;flex-shrink:0;
+}
+.btn-calc:hover{background:#1430a0}
+.corte-result{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:640px){.corte-result{grid-template-columns:1fr}}
+.cr-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px}
+.cr-card-title{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:10px}
+.cr-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text)}
+.cr-row .v{font-weight:700}
+.cr-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
+.cr-row.total .v{color:var(--blue-mid)}
+.ganancia-banner{
+  background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));
+  color:var(--white);border-radius:12px;padding:20px 24px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;flex-wrap:wrap;gap:16px;
+}
+.gb-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:6px}
+.gb-amount{font-size:34px;font-weight:900;letter-spacing:-.02em}
+.gb-dist{display:flex;gap:20px;flex-wrap:wrap}
+.gb-dist-item{text-align:center}
+.gb-dist-val{font-size:20px;font-weight:900}
+.gb-dist-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-top:2px}
+.btn-save-corte{
+  background:var(--green);color:var(--white);border:none;border-radius:8px;
+  padding:12px 24px;font-size:13px;font-weight:800;font-family:var(--font);
+  cursor:pointer;transition:opacity .15s;letter-spacing:.04em;
+}
+.btn-save-corte:hover{opacity:.85}
+.btn-save-corte:disabled{opacity:.4;cursor:not-allowed}
+.corte-hist-item{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:8px;
+}
+.chi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.chi-dates{font-size:12px;font-weight:700;color:var(--text)}
+.chi-ganancia{font-size:16px;font-weight:900;color:var(--blue-mid)}
+.chi-dist{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gray)}
+.chi-dist span{font-weight:700;color:var(--text)}
+
+/* ── EMPTY / TOAST ── */
+.empty-state{text-align:center;padding:36px 20px;color:var(--gray);font-size:12px;font-weight:600}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--text);color:var(--white);padding:11px 20px;border-radius:8px;
+  font-size:13px;font-weight:700;z-index:9999;transition:transform .3s;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.green{background:var(--green)}
+.toast.red{background:var(--red)}
+
+@media(max-width:600px){
+  nav{padding:0 12px;gap:8px}
+  .nav-tab{padding:6px 10px;font-size:11px}
+  .tab-panel{padding:16px 12px}
+  .balance-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" class="nav-logo">
+    <img src="/logo.png" alt="PUREZA">
+  </a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('resumen',this)">Resumen</button>
+    <button class="nav-tab" onclick="showTab('ingresos',this)">Ingresos</button>
+    <button class="nav-tab" onclick="showTab('gastos',this)">Gastos</button>
+    <button class="nav-tab" onclick="showTab('corte',this)">Corte de caja</button>
+  </div>
+  <a href="/cotizador.html" class="nav-link">Cotizador →</a>
+</nav>
+
+<main>
+
+<!-- ══ TAB: RESUMEN ══════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-resumen">
+  <div class="balance-grid">
+    <div class="balance-card">
+      <div class="bc-label">Emmanuel</div>
+      <div class="bc-amount emmanuel" id="bal-emmanuel">…</div>
+      <div class="bc-sub">Efectivo en mano</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Jeebe</div>
+      <div class="bc-amount jeebe" id="bal-jeebe">…</div>
+      <div class="bc-sub">Efectivo en mano</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Banco</div>
+      <div class="bc-amount banco" id="bal-banco">…</div>
+      <div class="bc-sub">Transferencias</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Ahorro</div>
+      <div class="bc-amount ahorro" id="bal-ahorro">…</div>
+      <div class="bc-sub">Fondo de ahorro</div>
+    </div>
+  </div>
+  <div class="section-head">Actividad reciente</div>
+  <div class="activity-list" id="activity-list">
+    <div class="empty-state">Cargando…</div>
+  </div>
+</div>
+
+<!-- ══ TAB: INGRESOS ═════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-ingresos">
+  <div class="two-panel">
+
+    <div class="form-card">
+      <div class="fc-title">Registrar ingreso</div>
+
+      <div class="field cs-wrap" id="cot-search-wrap">
+        <label>Cotización (opcional)</label>
+        <input type="text" id="ing-cot-search" placeholder="Buscar por folio o cliente…" autocomplete="off"
+          oninput="searchCotizaciones(this.value)" onfocus="openCotDrop()">
+        <div class="cs-drop" id="cot-drop"></div>
+        <input type="hidden" id="ing-cot-id">
+        <input type="hidden" id="ing-cot-folio">
+      </div>
+
+      <div class="field">
+        <label>Cliente (opcional)</label>
+        <input type="text" id="ing-cliente" placeholder="Nombre del cliente">
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" id="ing-desc" placeholder="Ej. Limpieza de sala y comedor">
+      </div>
+      <div class="field">
+        <label>Monto *</label>
+        <input type="number" id="ing-monto" placeholder="0" min="0" step="1">
+      </div>
+      <div class="field">
+        <label>Cobrado por *</label>
+        <div class="seg-ctrl" id="seg-cobrador">
+          <button class="seg-btn" onclick="selSeg('cobrador','emmanuel',this)">Emmanuel</button>
+          <button class="seg-btn" onclick="selSeg('cobrador','jeebe',this)">Jeebe</button>
+          <button class="seg-btn" onclick="selSeg('cobrador','banco',this)">Banco</button>
+        </div>
+        <input type="hidden" id="val-cobrador">
+      </div>
+      <div class="field">
+        <label>Fecha *</label>
+        <input type="date" id="ing-fecha">
+      </div>
+      <button class="btn-submit" onclick="saveIngreso()">Registrar ingreso</button>
+    </div>
+
+    <div>
+      <div class="date-filter">
+        <div class="field"><label>Desde</label><input type="date" id="ing-fi"></div>
+        <div class="field"><label>Hasta</label><input type="date" id="ing-ff"></div>
+        <button class="btn-filter" onclick="loadIngresos()">Filtrar</button>
+        <button class="btn-filter" onclick="clearFilter('ing')">Ver todo</button>
+      </div>
+      <div class="list-card">
+        <div class="lc-head">
+          <span class="lc-title">Ingresos registrados</span>
+          <span class="lc-total" id="ing-total" style="color:var(--green)">$0</span>
+        </div>
+        <div class="lc-body" id="ing-list">
+          <div class="empty-state">Cargando…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TAB: GASTOS ═══════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-gastos">
+  <div class="two-panel">
+
+    <div class="form-card">
+      <div class="fc-title">Registrar gasto</div>
+
+      <div class="field">
+        <label>Tipo *</label>
+        <div class="seg-ctrl" id="seg-tipo" style="flex-wrap:wrap">
+          <button class="seg-btn" onclick="selSeg('tipo','gasolina',this)">Gasolina</button>
+          <button class="seg-btn" onclick="selSeg('tipo','productos_quimicos',this)">Prod. Químicos</button>
+          <button class="seg-btn" onclick="selSeg('tipo','publicidad',this)">Publicidad</button>
+          <button class="seg-btn" onclick="selSeg('tipo','materiales',this)">Materiales</button>
+          <button class="seg-btn" onclick="selSeg('tipo','otros',this)">Otros</button>
+        </div>
+        <input type="hidden" id="val-tipo">
+      </div>
+      <div class="field">
+        <label>Descripción</label>
+        <input type="text" id="gasto-desc" placeholder="Detalle del gasto (opcional)">
+      </div>
+      <div class="field">
+        <label>Monto *</label>
+        <input type="number" id="gasto-monto" placeholder="0" min="0" step="1">
+      </div>
+      <div class="field">
+        <label>Pagado por *</label>
+        <div class="seg-ctrl" id="seg-pagador">
+          <button class="seg-btn" onclick="selSeg('pagador','emmanuel',this)">Emmanuel</button>
+          <button class="seg-btn" onclick="selSeg('pagador','jeebe',this)">Jeebe</button>
+          <button class="seg-btn" onclick="selSeg('pagador','banco',this)">Banco</button>
+        </div>
+        <input type="hidden" id="val-pagador">
+      </div>
+      <div class="field">
+        <label>Fecha *</label>
+        <input type="date" id="gasto-fecha">
+      </div>
+      <button class="btn-submit" onclick="saveGasto()">Registrar gasto</button>
+    </div>
+
+    <div>
+      <div class="date-filter">
+        <div class="field"><label>Desde</label><input type="date" id="gasto-fi"></div>
+        <div class="field"><label>Hasta</label><input type="date" id="gasto-ff"></div>
+        <button class="btn-filter" onclick="loadGastos()">Filtrar</button>
+        <button class="btn-filter" onclick="clearFilter('gasto')">Ver todo</button>
+      </div>
+      <div class="list-card">
+        <div class="lc-head">
+          <span class="lc-title">Gastos registrados</span>
+          <span class="lc-total" id="gasto-total" style="color:var(--red)">$0</span>
+        </div>
+        <div class="lc-body" id="gasto-list">
+          <div class="empty-state">Cargando…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TAB: CORTE ════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-corte">
+
+  <div class="corte-range">
+    <div class="field"><label>Fecha inicio</label><input type="date" id="corte-fi"></div>
+    <div class="field"><label>Fecha fin</label><input type="date" id="corte-ff"></div>
+    <button class="btn-calc" onclick="calcularCorte()">Calcular corte</button>
+  </div>
+
+  <div id="corte-result-area" style="display:none">
+    <div class="corte-result">
+      <div class="cr-card">
+        <div class="cr-card-title">Ingresos del período</div>
+        <div class="cr-row"><span>Efectivo Emmanuel</span><span class="v" id="cr-em-ing">$0</span></div>
+        <div class="cr-row"><span>Efectivo Jeebe</span><span class="v" id="cr-je-ing">$0</span></div>
+        <div class="cr-row"><span>Transferencias banco</span><span class="v" id="cr-ba-ing">$0</span></div>
+        <div class="cr-row total"><span>Total ingresos</span><span class="v" id="cr-total-ing">$0</span></div>
+      </div>
+      <div class="cr-card">
+        <div class="cr-card-title">Gastos del período</div>
+        <div class="cr-row"><span>Pagados por Emmanuel</span><span class="v" id="cr-em-gasto">$0</span></div>
+        <div class="cr-row"><span>Pagados por Jeebe</span><span class="v" id="cr-je-gasto">$0</span></div>
+        <div class="cr-row"><span>Pagados del banco</span><span class="v" id="cr-ba-gasto">$0</span></div>
+        <div class="cr-row total"><span>Total gastos</span><span class="v" id="cr-total-gasto" style="color:var(--red)">$0</span></div>
+      </div>
+    </div>
+
+    <div class="ganancia-banner">
+      <div>
+        <div class="gb-label">Ganancia neta del período</div>
+        <div class="gb-amount" id="cr-ganancia">$0</div>
+      </div>
+      <div class="gb-dist">
+        <div class="gb-dist-item">
+          <div class="gb-dist-val" id="cr-dist-em">$0</div>
+          <div class="gb-dist-lbl">40% Emmanuel</div>
+        </div>
+        <div class="gb-dist-item">
+          <div class="gb-dist-val" id="cr-dist-je">$0</div>
+          <div class="gb-dist-lbl">40% Jeebe</div>
+        </div>
+        <div class="gb-dist-item">
+          <div class="gb-dist-val" id="cr-dist-ah">$0</div>
+          <div class="gb-dist-lbl">20% Ahorro</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:28px">
+      <button class="btn-save-corte" id="btn-save-corte" onclick="guardarCorte()">Guardar corte</button>
+      <span style="font-size:11px;color:var(--gray)">Guarda este corte en el historial</span>
+    </div>
+  </div>
+
+  <div class="section-head">Historial de cortes</div>
+  <div id="corte-hist">
+    <div class="empty-state">Sin cortes guardados aún.</div>
+  </div>
+
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────
+(function(){
+  const KEY='pureza-auth', PWD='Pureza2000';
+  if(localStorage.getItem(KEY)!==PWD){
+    const input=prompt('Contraseña:');
+    if(input!==PWD){document.body.innerHTML='';location.href='/';}
+    else localStorage.setItem(KEY,PWD);
+  }
+})();
+
+// ── Helpers ───────────────────────────────────────────────────
+const today = () => new Date().toISOString().split('T')[0];
+const fmt   = n  => '$' + Math.round(Number(n)||0).toLocaleString('es-MX');
+const esc   = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function fmtDate(d){
+  if(!d) return '';
+  const [y,m,day] = String(d).split('-');
+  return `${day}/${m}/${y}`;
+}
+
+const tipoLabel = {
+  gasolina:'Gasolina', productos_quimicos:'Prod. Químicos',
+  publicidad:'Publicidad', materiales:'Materiales', otros:'Otros'
+};
+const cobLabel = { emmanuel:'Emmanuel', jeebe:'Jeebe', banco:'Banco' };
+
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.className='toast', 2800);
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+function showTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='resumen')  loadResumen();
+  if(id==='ingresos') { loadIngresos(); loadCotizaciones(); }
+  if(id==='gastos')   loadGastos();
+  if(id==='corte')    loadCorteHist();
+}
+
+// ── Segmented control ─────────────────────────────────────────
+function selSeg(group, val, btn){
+  document.getElementById('seg-'+group).querySelectorAll('.seg-btn')
+    .forEach(b=>b.className='seg-btn');
+  btn.className = 'seg-btn sel-'+val;
+  document.getElementById('val-'+group).value = val;
+}
+
+// ── Init dates ────────────────────────────────────────────────
+document.getElementById('ing-fecha').value   = today();
+document.getElementById('gasto-fecha').value = today();
+(function(){
+  const d=new Date(), dow=d.getDay();
+  const diff = dow===0?6:dow-1;
+  const mon = new Date(d); mon.setDate(d.getDate()-diff);
+  document.getElementById('corte-fi').value = mon.toISOString().split('T')[0];
+  document.getElementById('corte-ff').value = today();
+})();
+
+// ── RESUMEN ───────────────────────────────────────────────────
+async function loadResumen(){
+  try{
+    const r = await fetch('/api/finanzas?tipo=resumen');
+    const d = await r.json();
+    const b = d.balance||{};
+    document.getElementById('bal-emmanuel').textContent = fmt(b.emmanuel||0);
+    document.getElementById('bal-jeebe').textContent    = fmt(b.jeebe||0);
+    document.getElementById('bal-banco').textContent    = fmt(b.banco||0);
+    document.getElementById('bal-ahorro').textContent   = fmt(b.ahorro||0);
+
+    const items = [
+      ...(d.servicios||[]).map(s=>({...s,_t:'ingreso'})),
+      ...(d.gastos||[]).map(g=>({...g,_t:'gasto'})),
+    ].sort((a,b)=> (b.created_at||'')>(a.created_at||'')?1:-1).slice(0,20);
+
+    const el = document.getElementById('activity-list');
+    if(!items.length){ el.innerHTML='<div class="empty-state">Sin actividad reciente.</div>'; return; }
+    el.innerHTML = items.map(item=>{
+      if(item._t==='ingreso') return `
+        <div class="activity-item">
+          <div class="ai-badge ingreso">+</div>
+          <div class="ai-info">
+            <div class="ai-desc">${esc(item.descripcion||'Servicio cobrado')}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(cobLabel[item.cobrado_por]||item.cobrado_por)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}</div>
+          </div>
+          <div class="ai-amount ingreso">+${fmt(item.monto)}</div>
+        </div>`;
+      return `
+        <div class="activity-item">
+          <div class="ai-badge gasto">−</div>
+          <div class="ai-info">
+            <div class="ai-desc">${esc(item.descripcion||tipoLabel[item.tipo]||'Gasto')}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)} · ${esc(cobLabel[item.pagado_por]||item.pagado_por)}</div>
+          </div>
+          <div class="ai-amount gasto">−${fmt(item.monto)}</div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    document.getElementById('activity-list').innerHTML='<div class="empty-state">Error al cargar datos.</div>';
+  }
+}
+
+// ── COTIZACIONES SEARCH ───────────────────────────────────────
+let cotizaciones=[];
+
+async function loadCotizaciones(){
+  try{
+    const r=await fetch('/api/cotizaciones');
+    const d=await r.json();
+    cotizaciones=d.cotizaciones||[];
+  }catch(e){ cotizaciones=[]; }
+}
+
+function openCotDrop(){ searchCotizaciones(document.getElementById('ing-cot-search').value); }
+
+function searchCotizaciones(val){
+  const drop=document.getElementById('cot-drop');
+  const q=val.trim().toLowerCase();
+  const list=q
+    ?cotizaciones.filter(c=>(c.folio||'').toLowerCase().includes(q)||(c.cliente_nombre||'').toLowerCase().includes(q))
+    :cotizaciones.slice(0,8);
+  if(!list.length){ drop.style.display='none'; return; }
+  drop.innerHTML=list.map(c=>`
+    <div class="cs-item" onclick="selectCotizacion('${esc(c.id)}')">
+      <div class="cs-item-folio">${esc(c.folio)}</div>
+      <div class="cs-item-sub">${esc(c.cliente_nombre||'Sin cliente')} · ${fmt(c.total)}</div>
+    </div>`).join('');
+  drop.style.display='block';
+}
+
+function selectCotizacion(id){
+  const c=cotizaciones.find(x=>x.id===id); if(!c) return;
+  document.getElementById('ing-cot-search').value = c.folio+(c.cliente_nombre?' — '+c.cliente_nombre:'');
+  document.getElementById('ing-cot-id').value   = c.id;
+  document.getElementById('ing-cot-folio').value = c.folio;
+  if(c.cliente_nombre) document.getElementById('ing-cliente').value = c.cliente_nombre;
+  if(c.total) document.getElementById('ing-monto').value = Math.round(c.total);
+  document.getElementById('cot-drop').style.display='none';
+}
+
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.cs-wrap'))
+    document.querySelectorAll('.cs-drop').forEach(d=>d.style.display='none');
+});
+
+// ── INGRESOS ──────────────────────────────────────────────────
+async function loadIngresos(){
+  const fi=document.getElementById('ing-fi').value;
+  const ff=document.getElementById('ing-ff').value;
+  let url='/api/finanzas?tipo=ingresos';
+  if(fi) url+='&fecha_inicio='+fi;
+  if(ff) url+='&fecha_fin='+ff;
+  try{
+    const r=await fetch(url);
+    const d=await r.json();
+    renderIngresos(d.ingresos||[]);
+  }catch(e){}
+}
+
+function clearFilter(prefix){
+  document.getElementById(prefix+'-fi').value='';
+  document.getElementById(prefix+'-ff').value='';
+  prefix==='ing'?loadIngresos():loadGastos();
+}
+
+function renderIngresos(list){
+  const total=list.reduce((s,i)=>s+Number(i.monto),0);
+  document.getElementById('ing-total').textContent=fmt(total);
+  const el=document.getElementById('ing-list');
+  if(!list.length){ el.innerHTML='<div class="empty-state">Sin ingresos registrados.</div>'; return; }
+  el.innerHTML=list.map(i=>`
+    <div class="list-row">
+      <div class="lr-info">
+        <div class="lr-main">${esc(i.descripcion||'Servicio cobrado')}${i.folio_cotizacion?' <span class="tipo-tag">'+esc(i.folio_cotizacion)+'</span>':''}</div>
+        <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''} · <span class="cob-tag ${esc(i.cobrado_por)}">${esc(cobLabel[i.cobrado_por]||i.cobrado_por)}</span></div>
+      </div>
+      <span class="lr-amount ingreso">+${fmt(i.monto)}</span>
+      <button class="btn-del-row" onclick="delIngreso('${esc(i.id)}')">×</button>
+    </div>`).join('');
+}
+
+async function saveIngreso(){
+  const monto     = parseFloat(document.getElementById('ing-monto').value);
+  const cobrado_por = document.getElementById('val-cobrador').value;
+  if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
+  if(!cobrado_por)     return showToast('Selecciona quién cobró','red');
+
+  const body={
+    cotizacion_id:   document.getElementById('ing-cot-id').value||null,
+    folio_cotizacion:document.getElementById('ing-cot-folio').value||null,
+    cliente_nombre:  document.getElementById('ing-cliente').value.trim()||null,
+    descripcion:     document.getElementById('ing-desc').value.trim()||null,
+    monto, cobrado_por,
+    fecha: document.getElementById('ing-fecha').value||today(),
+  };
+  try{
+    const r=await fetch('/api/finanzas?tipo=ingresos',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
+    });
+    if(!r.ok) throw new Error();
+    showToast('Ingreso registrado ✓','green');
+    ['ing-cot-search','ing-cot-id','ing-cot-folio','ing-cliente','ing-desc','ing-monto']
+      .forEach(id=>document.getElementById(id).value='');
+    document.getElementById('seg-cobrador').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    document.getElementById('val-cobrador').value='';
+    document.getElementById('ing-fecha').value=today();
+    loadIngresos(); loadResumen();
+  }catch(e){ showToast('Error al guardar','red'); }
+}
+
+async function delIngreso(id){
+  if(!confirm('¿Eliminar este ingreso?')) return;
+  await fetch('/api/finanzas?tipo=ingresos&id='+id,{method:'DELETE'});
+  showToast('Eliminado');
+  loadIngresos(); loadResumen();
+}
+
+// ── GASTOS ────────────────────────────────────────────────────
+async function loadGastos(){
+  const fi=document.getElementById('gasto-fi').value;
+  const ff=document.getElementById('gasto-ff').value;
+  let url='/api/finanzas?tipo=gastos';
+  if(fi) url+='&fecha_inicio='+fi;
+  if(ff) url+='&fecha_fin='+ff;
+  try{
+    const r=await fetch(url);
+    const d=await r.json();
+    renderGastos(d.gastos||[]);
+  }catch(e){}
+}
+
+function renderGastos(list){
+  const total=list.reduce((s,g)=>s+Number(g.monto),0);
+  document.getElementById('gasto-total').textContent=fmt(total);
+  const el=document.getElementById('gasto-list');
+  if(!list.length){ el.innerHTML='<div class="empty-state">Sin gastos registrados.</div>'; return; }
+  el.innerHTML=list.map(g=>`
+    <div class="list-row">
+      <div class="lr-info">
+        <div class="lr-main"><span class="tipo-tag">${esc(tipoLabel[g.tipo]||g.tipo)}</span>${g.descripcion?' '+esc(g.descripcion):''}</div>
+        <div class="lr-sub">${fmtDate(g.fecha)} · <span class="cob-tag ${esc(g.pagado_por)}">${esc(cobLabel[g.pagado_por]||g.pagado_por)}</span></div>
+      </div>
+      <span class="lr-amount gasto">−${fmt(g.monto)}</span>
+      <button class="btn-del-row" onclick="delGasto('${esc(g.id)}')">×</button>
+    </div>`).join('');
+}
+
+async function saveGasto(){
+  const tipo      = document.getElementById('val-tipo').value;
+  const monto     = parseFloat(document.getElementById('gasto-monto').value);
+  const pagado_por = document.getElementById('val-pagador').value;
+  if(!tipo)           return showToast('Selecciona el tipo de gasto','red');
+  if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
+  if(!pagado_por)     return showToast('Selecciona quién pagó','red');
+
+  const body={
+    tipo,
+    descripcion: document.getElementById('gasto-desc').value.trim()||null,
+    monto, pagado_por,
+    fecha: document.getElementById('gasto-fecha').value||today(),
+  };
+  try{
+    const r=await fetch('/api/finanzas?tipo=gastos',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
+    });
+    if(!r.ok) throw new Error();
+    showToast('Gasto registrado ✓','green');
+    ['gasto-desc','gasto-monto'].forEach(id=>document.getElementById(id).value='');
+    ['seg-tipo','seg-pagador'].forEach(id=>{
+      document.getElementById(id).querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    });
+    document.getElementById('val-tipo').value='';
+    document.getElementById('val-pagador').value='';
+    document.getElementById('gasto-fecha').value=today();
+    loadGastos(); loadResumen();
+  }catch(e){ showToast('Error al guardar','red'); }
+}
+
+async function delGasto(id){
+  if(!confirm('¿Eliminar este gasto?')) return;
+  await fetch('/api/finanzas?tipo=gastos&id='+id,{method:'DELETE'});
+  showToast('Eliminado');
+  loadGastos(); loadResumen();
+}
+
+// ── CORTE ─────────────────────────────────────────────────────
+let corteData=null;
+
+async function calcularCorte(){
+  const fi=document.getElementById('corte-fi').value;
+  const ff=document.getElementById('corte-ff').value;
+  if(!fi||!ff) return showToast('Selecciona el rango de fechas','red');
+  try{
+    const r=await fetch(`/api/finanzas?tipo=cortes&calcular=1&fecha_inicio=${fi}&fecha_fin=${ff}`);
+    const d=await r.json();
+    corteData=d.calculo;
+    document.getElementById('cr-em-ing').textContent     = fmt(corteData.efectivo_emmanuel);
+    document.getElementById('cr-je-ing').textContent     = fmt(corteData.efectivo_jeebe);
+    document.getElementById('cr-ba-ing').textContent     = fmt(corteData.transferencias);
+    document.getElementById('cr-total-ing').textContent  = fmt(corteData.total_ingresos);
+    document.getElementById('cr-em-gasto').textContent   = fmt(corteData.gastos_emmanuel);
+    document.getElementById('cr-je-gasto').textContent   = fmt(corteData.gastos_jeebe);
+    document.getElementById('cr-ba-gasto').textContent   = fmt(corteData.gastos_banco);
+    document.getElementById('cr-total-gasto').textContent= fmt(corteData.total_gastos);
+    document.getElementById('cr-ganancia').textContent   = fmt(corteData.ganancia);
+    document.getElementById('cr-dist-em').textContent    = fmt(corteData.reparto_emmanuel);
+    document.getElementById('cr-dist-je').textContent    = fmt(corteData.reparto_jeebe);
+    document.getElementById('cr-dist-ah').textContent    = fmt(corteData.fondo_ahorro);
+    document.getElementById('corte-result-area').style.display='block';
+    document.getElementById('btn-save-corte').disabled=false;
+    document.getElementById('corte-result-area').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){ showToast('Error al calcular','red'); }
+}
+
+async function guardarCorte(){
+  if(!corteData) return;
+  document.getElementById('btn-save-corte').disabled=true;
+  try{
+    const r=await fetch('/api/finanzas?tipo=cortes',{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corteData),
+    });
+    if(!r.ok) throw new Error();
+    showToast('Corte guardado ✓','green');
+    document.getElementById('corte-result-area').style.display='none';
+    corteData=null;
+    loadCorteHist(); loadResumen();
+  }catch(e){
+    showToast('Error al guardar','red');
+    document.getElementById('btn-save-corte').disabled=false;
+  }
+}
+
+async function loadCorteHist(){
+  try{
+    const r=await fetch('/api/finanzas?tipo=cortes');
+    const d=await r.json();
+    const list=d.cortes||[];
+    const el=document.getElementById('corte-hist');
+    if(!list.length){ el.innerHTML='<div class="empty-state">Sin cortes guardados aún.</div>'; return; }
+    el.innerHTML=list.map(c=>`
+      <div class="corte-hist-item">
+        <div class="chi-head">
+          <span class="chi-dates">${fmtDate(c.fecha_inicio)} — ${fmtDate(c.fecha_fin)}</span>
+          <span class="chi-ganancia">${fmt(c.ganancia)}</span>
+        </div>
+        <div class="chi-dist">
+          <div>Ingresos: <span>${fmt(c.total_ingresos)}</span></div>
+          <div>Gastos: <span>${fmt(c.total_gastos)}</span></div>
+          <div>Emmanuel: <span>${fmt(c.reparto_emmanuel)}</span></div>
+          <div>Jeebe: <span>${fmt(c.reparto_jeebe)}</span></div>
+          <div>Ahorro: <span>${fmt(c.fondo_ahorro)}</span></div>
+        </div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// ── Init ──────────────────────────────────────────────────────
+loadResumen();
+loadCotizaciones();
+</script>
+</body>
+</html>
