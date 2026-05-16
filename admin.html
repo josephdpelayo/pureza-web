@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUREZA Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a40d0;--blue-dark:#1e3a8a;--blue-mid:#2563eb;
+  --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
+  --green:#16a34a;
+}
+html,body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+}
+
+/* ── LOCK SCREEN ── */
+#lock{
+  position:fixed;inset:0;z-index:999;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.lock-logo{height:56px;width:auto;margin-bottom:28px}
+.lock-title{font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:20px}
+.lock-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+.lock-input{
+  padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:15px;font-family:var(--font);color:var(--text);outline:none;
+  text-align:center;letter-spacing:.12em;transition:border-color .15s;
+}
+.lock-input:focus{border-color:var(--blue-mid)}
+.lock-btn{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;font-family:var(--font);
+  cursor:pointer;letter-spacing:.06em;transition:background .15s;
+}
+.lock-btn:hover{background:#1430a0}
+.lock-error{font-size:12px;font-weight:700;color:#dc2626;text-align:center;display:none}
+
+/* ── MAIN ── */
+#app{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 20px;
+}
+.logo{height:64px;width:auto;margin-bottom:8px}
+.brand-name{
+  font-size:11px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--gray);margin-bottom:48px;
+}
+
+/* ── CARDS ── */
+.cards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;width:100%;max-width:680px}
+.card{
+  flex:1;min-width:260px;max-width:320px;
+  background:var(--white);border:1.5px solid var(--border);border-radius:16px;
+  padding:32px 28px;text-decoration:none;color:var(--text);
+  display:flex;flex-direction:column;gap:14px;
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+  cursor:pointer;
+}
+.card:hover{
+  border-color:var(--blue-mid);
+  box-shadow:0 8px 32px rgba(37,99,235,.12);
+  transform:translateY(-2px);
+}
+.card-icon{
+  width:52px;height:52px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.card-icon.blue{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2)}
+.card-icon.green{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2)}
+.card-icon svg{width:26px;height:26px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card-icon.blue svg{stroke:var(--blue-mid)}
+.card-icon.green svg{stroke:var(--green)}
+.card-title{font-size:20px;font-weight:900;letter-spacing:.01em}
+.card-desc{font-size:13px;color:var(--gray);line-height:1.6}
+.card-arrow{
+  display:inline-flex;align-items:center;gap:6px;margin-top:auto;
+  font-size:12px;font-weight:800;letter-spacing:.06em;
+}
+.card.blue-card .card-arrow{color:var(--blue-mid)}
+.card.green-card .card-arrow{color:var(--green)}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:20px;
+  font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:.06em;
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOCK SCREEN ── -->
+<div id="lock">
+  <img src="/logo.png" alt="PUREZA" class="lock-logo">
+  <div class="lock-title">Acceso Admin</div>
+  <div class="lock-form">
+    <input type="password" id="pwd-input" class="lock-input" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter') checkPwd()">
+    <button class="lock-btn" onclick="checkPwd()">Entrar</button>
+    <div class="lock-error" id="pwd-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app" style="display:none">
+  <img src="/logo.png" alt="PUREZA" class="logo">
+  <div class="brand-name">Panel de administración</div>
+
+  <div class="cards">
+
+    <a href="/cotizador.html" class="card blue-card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <div class="card-title">Cotizador</div>
+      <div class="card-desc">Genera cotizaciones profesionales, guárdalas con folio y búscalas cuando las necesites.</div>
+      <div class="card-arrow">Abrir cotizador →</div>
+    </a>
+
+    <a href="/finanzas.html" class="card green-card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+      </div>
+      <div class="card-title">Finanzas</div>
+      <div class="card-desc">Registra ingresos y gastos, consulta el balance de cada cuenta y realiza el corte de caja semanal.</div>
+      <div class="card-arrow">Abrir finanzas →</div>
+    </a>
+
+  </div>
+</div>
+
+<footer id="footer" style="display:none">© 2025 PUREZA · Mazatlán, Sinaloa</footer>
+
+<script>
+const KEY = 'pureza-auth', PWD = 'Pureza2000';
+
+function checkPwd(){
+  const val = document.getElementById('pwd-input').value;
+  if(val === PWD){
+    localStorage.setItem(KEY, PWD);
+    unlock();
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function unlock(){
+  document.getElementById('lock').style.display = 'none';
+  document.getElementById('app').style.display   = 'flex';
+  document.getElementById('footer').style.display = 'block';
+}
+
+if(localStorage.getItem(KEY) === PWD) unlock();
+else document.getElementById('pwd-input').focus();
+</script>
+</body>
+</html>
