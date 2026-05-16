@@ -188,7 +188,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 
 /* Logo */
-.q-logo{height:52px;width:auto;margin-bottom:30px;display:block}
+.q-logo{max-height:46px;width:auto;max-width:200px;object-fit:contain;margin-bottom:26px;display:block}
 
 /* Title */
 .q-title{font-size:36px;font-weight:900;color:var(--blue-dark);line-height:1.1;margin-bottom:26px}
@@ -199,7 +199,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .q-info p{font-size:12.5px;line-height:1.75;color:var(--text)}
 
 /* Table */
-.q-twrap{position:relative;flex:1}
+.q-twrap{flex:none}
+.q-twrap-inner{position:relative}
 .q-wm{
   position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   font-size:80px;font-weight:900;letter-spacing:.3em;
@@ -256,15 +257,20 @@ table.qt tbody td:not(:first-child){text-align:center}
 
 /* ── PRINT ── */
 @media print{
-  @page{size:A4 portrait;margin:0}
+  @page{size:A4 portrait;margin:10mm 14mm}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body,html{background:#fff}
   #form-panel,.qa-bar{display:none!important}
   #layout,#quote-panel{display:block;padding:0;background:#fff}
   .q{
-    width:210mm;min-height:297mm;
-    box-shadow:none;padding:14mm 16mm 12mm;
+    width:100%;
+    box-shadow:none;padding:0;
+    min-height:unset;
   }
+  .q-title{font-size:28px;margin-bottom:18px}
+  .q-info{margin-bottom:18px}
+  .q-conds{margin-top:16px}
+  .q-foot{margin-top:16px}
 }
 </style>
 </head>
@@ -363,18 +369,20 @@ table.qt tbody td:not(:first-child){text-align:center}
     </div>
 
     <div class="q-twrap">
-      <div class="q-wm">PUREZA</div>
-      <table class="qt">
-        <thead>
-          <tr>
-            <th style="width:44%">Producto / Servicio</th>
-            <th style="width:13%">Cantidad</th>
-            <th style="width:21%">Precio Unit.</th>
-            <th style="width:22%">Total</th>
-          </tr>
-        </thead>
-        <tbody id="q-tbody"></tbody>
-      </table>
+      <div class="q-twrap-inner">
+        <div class="q-wm">PUREZA</div>
+        <table class="qt">
+          <thead>
+            <tr>
+              <th style="width:44%">Producto / Servicio</th>
+              <th style="width:13%">Cantidad</th>
+              <th style="width:21%">Precio Unit.</th>
+              <th style="width:22%">Total</th>
+            </tr>
+          </thead>
+          <tbody id="q-tbody"></tbody>
+        </table>
+      </div>
       <div class="q-subs">
         <div class="q-sub-row"><span>Subtotal</span><span id="q-sub">$0</span></div>
         <div class="q-sub-row"><span>Descuentos</span><span id="q-desc">$0</span></div>
@@ -537,7 +545,7 @@ function updateQ() {
   document.getElementById('q-cliente').innerHTML = lines.join('<br>')||'—';
 
   const {sub, desc, total} = totals();
-  const MIN = 6;
+  const MIN = 4;
   const dataRows = items.map(i=>{
     const t = i.qty*(parseFloat(i.price)||0);
     return `<tr>
