@@ -12,7 +12,7 @@
   --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
   --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
   --green:#16a34a;--red:#dc2626;--red-bg:#fee2e2;
-  --purple:#7c3aed;--teal:#0891b2;
+  --purple:#7c3aed;--teal:#0891b2;--amber:#d97706;
 }
 html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
 
@@ -45,17 +45,23 @@ main{padding-top:56px;min-height:100vh}
 .tab-panel.active{display:block}
 
 /* ── BALANCE CARDS ── */
-.balance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-@media(max-width:800px){.balance-grid{grid-template-columns:repeat(2,1fr)}}
+.balance-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;margin-bottom:24px;
+}
+@media(max-width:1000px){.balance-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.balance-grid{grid-template-columns:repeat(2,1fr)}}
 .balance-card{
   background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;
 }
 .bc-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px}
-.bc-amount{font-size:26px;font-weight:900;line-height:1;letter-spacing:-.02em}
+.bc-amount{font-size:22px;font-weight:900;line-height:1;letter-spacing:-.02em}
 .bc-amount.emmanuel{color:var(--blue-mid)}
 .bc-amount.jeebe{color:var(--purple)}
 .bc-amount.banco{color:var(--teal)}
 .bc-amount.ahorro{color:var(--green)}
+.bc-amount.caja{color:var(--amber)}
 .bc-sub{font-size:10px;color:var(--gray);margin-top:4px}
 
 /* ── SECTION HEAD ── */
@@ -121,7 +127,6 @@ main{padding-top:56px;min-height:100vh}
   font-family:var(--font);cursor:pointer;transition:background .15s;letter-spacing:.04em;margin-top:4px;
 }
 .btn-submit:hover{background:#1430a0}
-.btn-submit:disabled{opacity:.45;cursor:not-allowed}
 
 /* ── LIST CARD ── */
 .list-card{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden}
@@ -185,7 +190,13 @@ main{padding-top:56px;min-height:100vh}
 .cs-item-folio{font-size:12px;font-weight:800;color:var(--blue-mid)}
 .cs-item-sub{font-size:11px;color:var(--gray);margin-top:1px}
 
-/* ── CORTE ── */
+/* ══════════════════════════════════════════
+   CORTE DE CAJA
+══════════════════════════════════════════ */
+.corte-step-label{
+  font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--blue-mid);margin-bottom:10px;
+}
 .corte-range{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
 .corte-range .field{margin-bottom:0;flex:1;min-width:140px}
 .btn-calc{
@@ -194,26 +205,82 @@ main{padding-top:56px;min-height:100vh}
   cursor:pointer;white-space:nowrap;transition:background .15s;flex-shrink:0;
 }
 .btn-calc:hover{background:#1430a0}
-.corte-result{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-@media(max-width:640px){.corte-result{grid-template-columns:1fr}}
-.cr-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px}
-.cr-card-title{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:10px}
-.cr-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text)}
-.cr-row .v{font-weight:700}
-.cr-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
-.cr-row.total .v{color:var(--blue-mid)}
-.ganancia-banner{
-  background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid));
-  color:var(--white);border-radius:12px;padding:20px 24px;
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:14px;flex-wrap:wrap;gap:16px;
+
+/* Summary row */
+.corte-summary{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;
 }
-.gb-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.7;margin-bottom:6px}
-.gb-amount{font-size:34px;font-weight:900;letter-spacing:-.02em}
-.gb-dist{display:flex;gap:20px;flex-wrap:wrap}
-.gb-dist-item{text-align:center}
-.gb-dist-val{font-size:20px;font-weight:900}
-.gb-dist-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-top:2px}
+@media(max-width:640px){.corte-summary{grid-template-columns:1fr}}
+.cs-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px}
+.cs-card-title{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:10px}
+.cs-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.cs-row .v{font-weight:700}
+.cs-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
+.cs-row.total .v{color:var(--blue-mid)}
+.cs-row.total-red .v{color:var(--red)}
+
+/* Disponible banner */
+.disponible-banner{
+  background:var(--blue-dark);color:var(--white);border-radius:12px;
+  padding:16px 20px;margin-bottom:20px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+.db-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.7}
+.db-amount{font-size:32px;font-weight:900;letter-spacing:-.02em}
+
+/* Distribution section */
+.dist-section{
+  background:var(--white);border:1px solid var(--border);border-radius:12px;padding:20px;
+  margin-bottom:16px;
+}
+.dist-title{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text);margin-bottom:4px}
+.dist-subtitle{font-size:11px;color:var(--gray);margin-bottom:16px}
+.dist-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:500px){.dist-grid{grid-template-columns:1fr}}
+.dist-item{}
+.dist-item label{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.dist-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dist-dot.emmanuel{background:var(--blue-mid)}
+.dist-dot.jeebe{background:var(--purple)}
+.dist-dot.ahorro{background:var(--green)}
+.dist-dot.caja{background:var(--amber)}
+.dist-item input{
+  width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:16px;font-weight:800;font-family:var(--font);color:var(--text);
+  outline:none;transition:border-color .15s;
+}
+.dist-item input:focus{border-color:var(--blue-mid)}
+.dist-item input.di-emmanuel:focus{border-color:var(--blue-mid)}
+.dist-item input.di-jeebe:focus{border-color:var(--purple)}
+.dist-item input.di-ahorro:focus{border-color:var(--green)}
+.dist-item input.di-caja:focus{border-color:var(--amber)}
+
+/* Balance indicator */
+.dist-balance{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:8px;padding:12px 14px;border-radius:8px;border:1px solid var(--border);
+  background:var(--bg);font-size:12px;margin-bottom:14px;
+}
+.db-info{color:var(--gray);font-weight:600}
+.db-info strong{color:var(--text)}
+.db-status{font-size:12px;font-weight:800;padding:4px 12px;border-radius:6px}
+.db-status.ok{background:rgba(22,163,74,.1);color:var(--green)}
+.db-status.off{background:rgba(220,38,38,.08);color:var(--red)}
+.db-status.over{background:rgba(217,119,6,.1);color:var(--amber)}
+
+/* Suggest button */
+.btn-suggest{
+  background:none;border:1.5px solid var(--border);border-radius:8px;
+  padding:8px 14px;font-size:11px;font-weight:700;font-family:var(--font);
+  cursor:pointer;color:var(--gray);transition:all .15s;white-space:nowrap;
+}
+.btn-suggest:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+
+/* Save corte button */
 .btn-save-corte{
   background:var(--green);color:var(--white);border:none;border-radius:8px;
   padding:12px 24px;font-size:13px;font-weight:800;font-family:var(--font);
@@ -221,6 +288,8 @@ main{padding-top:56px;min-height:100vh}
 }
 .btn-save-corte:hover{opacity:.85}
 .btn-save-corte:disabled{opacity:.4;cursor:not-allowed}
+
+/* Corte history */
 .corte-hist-item{
   background:var(--white);border:1px solid var(--border);border-radius:10px;
   padding:14px 16px;margin-bottom:8px;
@@ -246,7 +315,6 @@ main{padding-top:56px;min-height:100vh}
   nav{padding:0 12px;gap:8px}
   .nav-tab{padding:6px 10px;font-size:11px}
   .tab-panel{padding:16px 12px}
-  .balance-grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
@@ -286,9 +354,14 @@ main{padding-top:56px;min-height:100vh}
       <div class="bc-sub">Transferencias</div>
     </div>
     <div class="balance-card">
+      <div class="bc-label">Caja Chica</div>
+      <div class="bc-amount caja" id="bal-caja">…</div>
+      <div class="bc-sub">Fondo operativo</div>
+    </div>
+    <div class="balance-card">
       <div class="bc-label">Ahorro</div>
       <div class="bc-amount ahorro" id="bal-ahorro">…</div>
-      <div class="bc-sub">Fondo de ahorro</div>
+      <div class="bc-sub">Cuenta de ahorro</div>
     </div>
   </div>
   <div class="section-head">Actividad reciente</div>
@@ -300,10 +373,8 @@ main{padding-top:56px;min-height:100vh}
 <!-- ══ TAB: INGRESOS ═════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-ingresos">
   <div class="two-panel">
-
     <div class="form-card">
       <div class="fc-title">Registrar ingreso</div>
-
       <div class="field cs-wrap" id="cot-search-wrap">
         <label>Cotización (opcional)</label>
         <input type="text" id="ing-cot-search" placeholder="Buscar por folio o cliente…" autocomplete="off"
@@ -312,7 +383,6 @@ main{padding-top:56px;min-height:100vh}
         <input type="hidden" id="ing-cot-id">
         <input type="hidden" id="ing-cot-folio">
       </div>
-
       <div class="field">
         <label>Cliente (opcional)</label>
         <input type="text" id="ing-cliente" placeholder="Nombre del cliente">
@@ -340,7 +410,6 @@ main{padding-top:56px;min-height:100vh}
       </div>
       <button class="btn-submit" onclick="saveIngreso()">Registrar ingreso</button>
     </div>
-
     <div>
       <div class="date-filter">
         <div class="field"><label>Desde</label><input type="date" id="ing-fi"></div>
@@ -353,22 +422,17 @@ main{padding-top:56px;min-height:100vh}
           <span class="lc-title">Ingresos registrados</span>
           <span class="lc-total" id="ing-total" style="color:var(--green)">$0</span>
         </div>
-        <div class="lc-body" id="ing-list">
-          <div class="empty-state">Cargando…</div>
-        </div>
+        <div class="lc-body" id="ing-list"><div class="empty-state">Cargando…</div></div>
       </div>
     </div>
-
   </div>
 </div>
 
 <!-- ══ TAB: GASTOS ═══════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-gastos">
   <div class="two-panel">
-
     <div class="form-card">
       <div class="fc-title">Registrar gasto</div>
-
       <div class="field">
         <label>Tipo *</label>
         <div class="seg-ctrl" id="seg-tipo" style="flex-wrap:wrap">
@@ -403,7 +467,6 @@ main{padding-top:56px;min-height:100vh}
       </div>
       <button class="btn-submit" onclick="saveGasto()">Registrar gasto</button>
     </div>
-
     <div>
       <div class="date-filter">
         <div class="field"><label>Desde</label><input type="date" id="gasto-fi"></div>
@@ -416,70 +479,94 @@ main{padding-top:56px;min-height:100vh}
           <span class="lc-title">Gastos registrados</span>
           <span class="lc-total" id="gasto-total" style="color:var(--red)">$0</span>
         </div>
-        <div class="lc-body" id="gasto-list">
-          <div class="empty-state">Cargando…</div>
-        </div>
+        <div class="lc-body" id="gasto-list"><div class="empty-state">Cargando…</div></div>
       </div>
     </div>
-
   </div>
 </div>
 
 <!-- ══ TAB: CORTE ════════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-corte">
 
+  <!-- PASO 1: Seleccionar período -->
+  <div class="corte-step-label">1 · Seleccionar período</div>
   <div class="corte-range">
     <div class="field"><label>Fecha inicio</label><input type="date" id="corte-fi"></div>
     <div class="field"><label>Fecha fin</label><input type="date" id="corte-ff"></div>
-    <button class="btn-calc" onclick="calcularCorte()">Calcular corte</button>
+    <button class="btn-calc" onclick="calcularCorte()">Calcular</button>
   </div>
 
+  <!-- RESULTADO (se muestra tras calcular) -->
   <div id="corte-result-area" style="display:none">
-    <div class="corte-result">
-      <div class="cr-card">
-        <div class="cr-card-title">Ingresos del período</div>
-        <div class="cr-row"><span>Efectivo Emmanuel</span><span class="v" id="cr-em-ing">$0</span></div>
-        <div class="cr-row"><span>Efectivo Jeebe</span><span class="v" id="cr-je-ing">$0</span></div>
-        <div class="cr-row"><span>Transferencias banco</span><span class="v" id="cr-ba-ing">$0</span></div>
-        <div class="cr-row total"><span>Total ingresos</span><span class="v" id="cr-total-ing">$0</span></div>
+
+    <!-- Resumen de ingresos y gastos -->
+    <div class="corte-summary">
+      <div class="cs-card">
+        <div class="cs-card-title">Ingresos del período</div>
+        <div class="cs-row"><span>Efectivo Emmanuel</span><span class="v" id="cr-em-ing">$0</span></div>
+        <div class="cs-row"><span>Efectivo Jeebe</span><span class="v" id="cr-je-ing">$0</span></div>
+        <div class="cs-row"><span>Transferencias banco</span><span class="v" id="cr-ba-ing">$0</span></div>
+        <div class="cs-row total"><span>Total ingresos</span><span class="v" id="cr-total-ing">$0</span></div>
       </div>
-      <div class="cr-card">
-        <div class="cr-card-title">Gastos del período</div>
-        <div class="cr-row"><span>Pagados por Emmanuel</span><span class="v" id="cr-em-gasto">$0</span></div>
-        <div class="cr-row"><span>Pagados por Jeebe</span><span class="v" id="cr-je-gasto">$0</span></div>
-        <div class="cr-row"><span>Pagados del banco</span><span class="v" id="cr-ba-gasto">$0</span></div>
-        <div class="cr-row total"><span>Total gastos</span><span class="v" id="cr-total-gasto" style="color:var(--red)">$0</span></div>
+      <div class="cs-card">
+        <div class="cs-card-title">Gastos del período</div>
+        <div class="cs-row"><span>Pagados por Emmanuel</span><span class="v" id="cr-em-gasto">$0</span></div>
+        <div class="cs-row"><span>Pagados por Jeebe</span><span class="v" id="cr-je-gasto">$0</span></div>
+        <div class="cs-row"><span>Pagados del banco</span><span class="v" id="cr-ba-gasto">$0</span></div>
+        <div class="cs-row total total-red"><span>Total gastos</span><span class="v" id="cr-total-gasto">$0</span></div>
       </div>
     </div>
 
-    <div class="ganancia-banner">
+    <!-- Total disponible -->
+    <div class="disponible-banner">
       <div>
-        <div class="gb-label">Ganancia neta del período</div>
-        <div class="gb-amount" id="cr-ganancia">$0</div>
+        <div class="db-label">Total disponible para repartir</div>
+        <div class="db-amount" id="cr-disponible">$0</div>
       </div>
-      <div class="gb-dist">
-        <div class="gb-dist-item">
-          <div class="gb-dist-val" id="cr-dist-em">$0</div>
-          <div class="gb-dist-lbl">40% Emmanuel</div>
+      <button class="btn-suggest" onclick="sugerir4040()">Sugerir 40/40/20 →</button>
+    </div>
+
+    <!-- PASO 2: Distribución manual -->
+    <div class="dist-section">
+      <div class="corte-step-label" style="margin-bottom:4px">2 · Decidir la repartición</div>
+      <div class="dist-title">¿Cómo van a repartir el dinero disponible?</div>
+      <div class="dist-subtitle">Ingresa cuánto va a cada destino. Puedes usar la sugerencia 40/40/20 o definirlo libremente.</div>
+
+      <div class="dist-grid">
+        <div class="dist-item">
+          <label><div class="dist-dot emmanuel"></div>Emmanuel lleva</label>
+          <input type="number" id="dist-em" class="di-emmanuel" placeholder="0" min="0" oninput="updateDistBalance()">
         </div>
-        <div class="gb-dist-item">
-          <div class="gb-dist-val" id="cr-dist-je">$0</div>
-          <div class="gb-dist-lbl">40% Jeebe</div>
+        <div class="dist-item">
+          <label><div class="dist-dot jeebe"></div>Jeebe lleva</label>
+          <input type="number" id="dist-je" class="di-jeebe" placeholder="0" min="0" oninput="updateDistBalance()">
         </div>
-        <div class="gb-dist-item">
-          <div class="gb-dist-val" id="cr-dist-ah">$0</div>
-          <div class="gb-dist-lbl">20% Ahorro</div>
+        <div class="dist-item">
+          <label><div class="dist-dot ahorro"></div>Va a Ahorro</label>
+          <input type="number" id="dist-ah" class="di-ahorro" placeholder="0" min="0" oninput="updateDistBalance()">
         </div>
+        <div class="dist-item">
+          <label><div class="dist-dot caja"></div>Queda en Caja Chica</label>
+          <input type="number" id="dist-cc" class="di-caja" placeholder="0" min="0" oninput="updateDistBalance()">
+        </div>
+      </div>
+
+      <!-- Indicador de balance -->
+      <div class="dist-balance">
+        <div class="db-info">Disponible: <strong id="db-disponible-lbl">$0</strong> &nbsp;·&nbsp; Distribuido: <strong id="db-sum">$0</strong></div>
+        <div class="db-status" id="db-status">—</div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn-save-corte" id="btn-save-corte" onclick="guardarCorte()" disabled>Guardar corte</button>
+        <span style="font-size:11px;color:var(--gray)">El corte actualiza los balances de cada cuenta</span>
       </div>
     </div>
 
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:28px">
-      <button class="btn-save-corte" id="btn-save-corte" onclick="guardarCorte()">Guardar corte</button>
-      <span style="font-size:11px;color:var(--gray)">Guarda este corte en el historial</span>
-    </div>
-  </div>
+  </div><!-- /corte-result-area -->
 
-  <div class="section-head">Historial de cortes</div>
+  <!-- Historial -->
+  <div class="section-head" style="margin-top:8px">Historial de cortes</div>
   <div id="corte-hist">
     <div class="empty-state">Sin cortes guardados aún.</div>
   </div>
@@ -566,6 +653,7 @@ async function loadResumen(){
     document.getElementById('bal-emmanuel').textContent = fmt(b.emmanuel||0);
     document.getElementById('bal-jeebe').textContent    = fmt(b.jeebe||0);
     document.getElementById('bal-banco').textContent    = fmt(b.banco||0);
+    document.getElementById('bal-caja').textContent     = fmt(b.caja_chica||0);
     document.getElementById('bal-ahorro').textContent   = fmt(b.ahorro||0);
 
     const items = [
@@ -576,6 +664,9 @@ async function loadResumen(){
     const el = document.getElementById('activity-list');
     if(!items.length){ el.innerHTML='<div class="empty-state">Sin actividad reciente.</div>'; return; }
     el.innerHTML = items.map(item=>{
+      const delFn = item._t==='ingreso'
+        ? `delIngreso('${item.id}')`
+        : `delGasto('${item.id}')`;
       if(item._t==='ingreso') return `
         <div class="activity-item">
           <div class="ai-badge ingreso">+</div>
@@ -584,6 +675,7 @@ async function loadResumen(){
             <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(cobLabel[item.cobrado_por]||item.cobrado_por)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}</div>
           </div>
           <div class="ai-amount ingreso">+${fmt(item.monto)}</div>
+          <button class="btn-del-row" onclick="${delFn}">×</button>
         </div>`;
       return `
         <div class="activity-item">
@@ -593,6 +685,7 @@ async function loadResumen(){
             <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)} · ${esc(cobLabel[item.pagado_por]||item.pagado_por)}</div>
           </div>
           <div class="ai-amount gasto">−${fmt(item.monto)}</div>
+          <button class="btn-del-row" onclick="${delFn}">×</button>
         </div>`;
     }).join('');
   }catch(e){
@@ -631,7 +724,7 @@ function searchCotizaciones(val){
 function selectCotizacion(id){
   const c=cotizaciones.find(x=>x.id===id); if(!c) return;
   document.getElementById('ing-cot-search').value = c.folio+(c.cliente_nombre?' — '+c.cliente_nombre:'');
-  document.getElementById('ing-cot-id').value   = c.id;
+  document.getElementById('ing-cot-id').value    = c.id;
   document.getElementById('ing-cot-folio').value = c.folio;
   if(c.cliente_nombre) document.getElementById('ing-cliente').value = c.cliente_nombre;
   if(c.total) document.getElementById('ing-monto').value = Math.round(c.total);
@@ -680,7 +773,7 @@ function renderIngresos(list){
 }
 
 async function saveIngreso(){
-  const monto     = parseFloat(document.getElementById('ing-monto').value);
+  const monto      = parseFloat(document.getElementById('ing-monto').value);
   const cobrado_por = document.getElementById('val-cobrador').value;
   if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
   if(!cobrado_por)     return showToast('Selecciona quién cobró','red');
@@ -746,12 +839,12 @@ function renderGastos(list){
 }
 
 async function saveGasto(){
-  const tipo      = document.getElementById('val-tipo').value;
-  const monto     = parseFloat(document.getElementById('gasto-monto').value);
+  const tipo       = document.getElementById('val-tipo').value;
+  const monto      = parseFloat(document.getElementById('gasto-monto').value);
   const pagado_por = document.getElementById('val-pagador').value;
-  if(!tipo)           return showToast('Selecciona el tipo de gasto','red');
+  if(!tipo)            return showToast('Selecciona el tipo de gasto','red');
   if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
-  if(!pagado_por)     return showToast('Selecciona quién pagó','red');
+  if(!pagado_por)      return showToast('Selecciona quién pagó','red');
 
   const body={
     tipo,
@@ -783,8 +876,8 @@ async function delGasto(id){
   loadGastos(); loadResumen();
 }
 
-// ── CORTE ─────────────────────────────────────────────────────
-let corteData=null;
+// ── CORTE DE CAJA ─────────────────────────────────────────────
+let corteCalculo = null;
 
 async function calcularCorte(){
   const fi=document.getElementById('corte-fi').value;
@@ -793,36 +886,91 @@ async function calcularCorte(){
   try{
     const r=await fetch(`/api/finanzas?tipo=cortes&calcular=1&fecha_inicio=${fi}&fecha_fin=${ff}`);
     const d=await r.json();
-    corteData=d.calculo;
-    document.getElementById('cr-em-ing').textContent     = fmt(corteData.efectivo_emmanuel);
-    document.getElementById('cr-je-ing').textContent     = fmt(corteData.efectivo_jeebe);
-    document.getElementById('cr-ba-ing').textContent     = fmt(corteData.transferencias);
-    document.getElementById('cr-total-ing').textContent  = fmt(corteData.total_ingresos);
-    document.getElementById('cr-em-gasto').textContent   = fmt(corteData.gastos_emmanuel);
-    document.getElementById('cr-je-gasto').textContent   = fmt(corteData.gastos_jeebe);
-    document.getElementById('cr-ba-gasto').textContent   = fmt(corteData.gastos_banco);
-    document.getElementById('cr-total-gasto').textContent= fmt(corteData.total_gastos);
-    document.getElementById('cr-ganancia').textContent   = fmt(corteData.ganancia);
-    document.getElementById('cr-dist-em').textContent    = fmt(corteData.reparto_emmanuel);
-    document.getElementById('cr-dist-je').textContent    = fmt(corteData.reparto_jeebe);
-    document.getElementById('cr-dist-ah').textContent    = fmt(corteData.fondo_ahorro);
+    corteCalculo=d.calculo;
+
+    document.getElementById('cr-em-ing').textContent    = fmt(corteCalculo.efectivo_emmanuel);
+    document.getElementById('cr-je-ing').textContent    = fmt(corteCalculo.efectivo_jeebe);
+    document.getElementById('cr-ba-ing').textContent    = fmt(corteCalculo.transferencias);
+    document.getElementById('cr-total-ing').textContent = fmt(corteCalculo.total_ingresos);
+    document.getElementById('cr-em-gasto').textContent  = fmt(corteCalculo.gastos_emmanuel);
+    document.getElementById('cr-je-gasto').textContent  = fmt(corteCalculo.gastos_jeebe);
+    document.getElementById('cr-ba-gasto').textContent  = fmt(corteCalculo.gastos_banco);
+    document.getElementById('cr-total-gasto').textContent = fmt(corteCalculo.total_gastos);
+    document.getElementById('cr-disponible').textContent  = fmt(corteCalculo.disponible);
+    document.getElementById('db-disponible-lbl').textContent = fmt(corteCalculo.disponible);
+
+    // Reset distribution inputs
+    ['dist-em','dist-je','dist-ah','dist-cc'].forEach(id=>document.getElementById(id).value='');
+    updateDistBalance();
+
     document.getElementById('corte-result-area').style.display='block';
-    document.getElementById('btn-save-corte').disabled=false;
     document.getElementById('corte-result-area').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ showToast('Error al calcular','red'); }
 }
 
+function sugerir4040(){
+  if(!corteCalculo) return;
+  const d = corteCalculo.disponible;
+  document.getElementById('dist-em').value = Math.floor(d * 0.4);
+  document.getElementById('dist-je').value = Math.floor(d * 0.4);
+  document.getElementById('dist-ah').value = Math.floor(d * 0.2);
+  document.getElementById('dist-cc').value = '';
+  updateDistBalance();
+}
+
+function updateDistBalance(){
+  if(!corteCalculo) return;
+  const disponible = corteCalculo.disponible;
+  const em = parseFloat(document.getElementById('dist-em').value)||0;
+  const je = parseFloat(document.getElementById('dist-je').value)||0;
+  const ah = parseFloat(document.getElementById('dist-ah').value)||0;
+  const cc = parseFloat(document.getElementById('dist-cc').value)||0;
+  const sum = em + je + ah + cc;
+  const diff = Math.round(disponible - sum);
+
+  document.getElementById('db-sum').textContent = fmt(sum);
+  const statusEl = document.getElementById('db-status');
+  const saveBtn  = document.getElementById('btn-save-corte');
+
+  if(diff === 0){
+    statusEl.textContent = '✓ Cuadrado';
+    statusEl.className   = 'db-status ok';
+    saveBtn.disabled     = false;
+  } else if(diff > 0){
+    statusEl.textContent = `Faltan ${fmt(diff)}`;
+    statusEl.className   = 'db-status off';
+    saveBtn.disabled     = true;
+  } else {
+    statusEl.textContent = `Excede ${fmt(Math.abs(diff))}`;
+    statusEl.className   = 'db-status over';
+    saveBtn.disabled     = true;
+  }
+}
+
 async function guardarCorte(){
-  if(!corteData) return;
+  if(!corteCalculo) return;
+  const em = parseFloat(document.getElementById('dist-em').value)||0;
+  const je = parseFloat(document.getElementById('dist-je').value)||0;
+  const ah = parseFloat(document.getElementById('dist-ah').value)||0;
+  const cc = parseFloat(document.getElementById('dist-cc').value)||0;
+
+  const body = {
+    ...corteCalculo,
+    reparto_emmanuel: em,
+    reparto_jeebe:    je,
+    fondo_ahorro:     ah,
+    caja_chica:       cc,
+  };
+
   document.getElementById('btn-save-corte').disabled=true;
   try{
     const r=await fetch('/api/finanzas?tipo=cortes',{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(corteData),
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),
     });
     if(!r.ok) throw new Error();
     showToast('Corte guardado ✓','green');
     document.getElementById('corte-result-area').style.display='none';
-    corteData=null;
+    corteCalculo=null;
     loadCorteHist(); loadResumen();
   }catch(e){
     showToast('Error al guardar','red');
@@ -841,7 +989,7 @@ async function loadCorteHist(){
       <div class="corte-hist-item">
         <div class="chi-head">
           <span class="chi-dates">${fmtDate(c.fecha_inicio)} — ${fmtDate(c.fecha_fin)}</span>
-          <span class="chi-ganancia">${fmt(c.ganancia)}</span>
+          <span class="chi-ganancia">${fmt(c.ganancia||c.disponible)}</span>
         </div>
         <div class="chi-dist">
           <div>Ingresos: <span>${fmt(c.total_ingresos)}</span></div>
@@ -849,6 +997,7 @@ async function loadCorteHist(){
           <div>Emmanuel: <span>${fmt(c.reparto_emmanuel)}</span></div>
           <div>Jeebe: <span>${fmt(c.reparto_jeebe)}</span></div>
           <div>Ahorro: <span>${fmt(c.fondo_ahorro)}</span></div>
+          ${c.caja_chica>0?`<div>Caja Chica: <span>${fmt(c.caja_chica)}</span></div>`:''}
         </div>
       </div>`).join('');
   }catch(e){}

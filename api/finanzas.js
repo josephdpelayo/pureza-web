@@ -10,14 +10,15 @@ const hdrs = () => ({
 async function getBalance() {
   const [sR, gR, cR] = await Promise.all([
     fetch(`${URL}/rest/v1/servicios_cobrados?select=cobrado_por,monto`, { headers: hdrs() }),
-    fetch(`${URL}/rest/v1/gastos?select=pagado_por,monto`, { headers: hdrs() }),
-    fetch(`${URL}/rest/v1/cortes?select=fondo_ahorro`, { headers: hdrs() }),
+    fetch(`${URL}/rest/v1/pureza_gastos?select=pagado_por,monto`, { headers: hdrs() }),
+    fetch(`${URL}/rest/v1/cortes?select=reparto_emmanuel,reparto_jeebe,fondo_ahorro,caja_chica`, { headers: hdrs() }),
   ]);
   const servicios = await sR.json();
   const gastos    = await gR.json();
   const cortes    = await cR.json();
 
-  const bal = { emmanuel: 0, jeebe: 0, banco: 0, ahorro: 0 };
+  const bal = { emmanuel: 0, jeebe: 0, banco: 0, ahorro: 0, caja_chica: 0 };
+
   if (Array.isArray(servicios)) {
     for (const s of servicios) bal[s.cobrado_por] = (bal[s.cobrado_por] || 0) + Number(s.monto);
   }
@@ -25,7 +26,12 @@ async function getBalance() {
     for (const g of gastos) bal[g.pagado_por] = (bal[g.pagado_por] || 0) - Number(g.monto);
   }
   if (Array.isArray(cortes)) {
-    for (const c of cortes) bal.ahorro += Number(c.fondo_ahorro);
+    for (const c of cortes) {
+      bal.emmanuel   -= Number(c.reparto_emmanuel);
+      bal.jeebe      -= Number(c.reparto_jeebe);
+      bal.ahorro     += Number(c.fondo_ahorro);
+      bal.caja_chica += Number(c.caja_chica || 0);
+    }
   }
   return bal;
 }
@@ -44,7 +50,7 @@ module.exports = async (req, res) => {
       const [balance, sR, gR] = await Promise.all([
         getBalance(),
         fetch(`${URL}/rest/v1/servicios_cobrados?order=created_at.desc&limit=15`, { headers: hdrs() }),
-        fetch(`${URL}/rest/v1/gastos?order=created_at.desc&limit=15`, { headers: hdrs() }),
+        fetch(`${URL}/rest/v1/pureza_gastos?order=created_at.desc&limit=15`, { headers: hdrs() }),
       ]);
       const servicios = await sR.json();
       const gastos    = await gR.json();
@@ -65,12 +71,12 @@ module.exports = async (req, res) => {
         const { cotizacion_id, folio_cotizacion, cliente_id, cliente_nombre, descripcion, monto, cobrado_por, fecha } = req.body || {};
         if (!monto || !cobrado_por) return res.status(400).json({ error: 'monto y cobrado_por requeridos' });
         const body = {
-          cotizacion_id: cotizacion_id || null,
+          cotizacion_id:    cotizacion_id || null,
           folio_cotizacion: folio_cotizacion || null,
-          cliente_id: cliente_id || null,
-          cliente_nombre: cliente_nombre || null,
-          descripcion: descripcion || null,
-          monto: Number(monto),
+          cliente_id:       cliente_id || null,
+          cliente_nombre:   cliente_nombre || null,
+          descripcion:      descripcion || null,
+          monto:            Number(monto),
           cobrado_por,
           fecha: fecha || new Date().toISOString().split('T')[0],
         };
@@ -92,7 +98,7 @@ module.exports = async (req, res) => {
     if (tipo === 'gastos') {
       if (req.method === 'GET') {
         const { fecha_inicio, fecha_fin } = req.query;
-        let url = `${URL}/rest/v1/gastos?order=fecha.desc,created_at.desc&limit=200`;
+        let url = `${URL}/rest/v1/pureza_gastos?order=fecha.desc,created_at.desc&limit=200`;
         if (fecha_inicio) url += `&fecha=gte.${fecha_inicio}`;
         if (fecha_fin)    url += `&fecha=lte.${fecha_fin}`;
         const r = await fetch(url, { headers: hdrs() });
@@ -102,13 +108,13 @@ module.exports = async (req, res) => {
         const { tipo: tipoGasto, descripcion, monto, pagado_por, fecha } = req.body || {};
         if (!tipoGasto || !monto || !pagado_por) return res.status(400).json({ error: 'tipo, monto y pagado_por requeridos' });
         const body = {
-          tipo: tipoGasto,
+          tipo:        tipoGasto,
           descripcion: descripcion || null,
-          monto: Number(monto),
+          monto:       Number(monto),
           pagado_por,
           fecha: fecha || new Date().toISOString().split('T')[0],
         };
-        const r = await fetch(`${URL}/rest/v1/gastos`, {
+        const r = await fetch(`${URL}/rest/v1/pureza_gastos`, {
           method: 'POST', headers: hdrs(), body: JSON.stringify(body),
         });
         const data = await r.json();
@@ -117,7 +123,7 @@ module.exports = async (req, res) => {
       if (req.method === 'DELETE') {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'id requerido' });
-        await fetch(`${URL}/rest/v1/gastos?id=eq.${id}`, { method: 'DELETE', headers: hdrs() });
+        await fetch(`${URL}/rest/v1/pureza_gastos?id=eq.${id}`, { method: 'DELETE', headers: hdrs() });
         return res.json({ ok: true });
       }
     }
@@ -130,7 +136,7 @@ module.exports = async (req, res) => {
         if (calcular && fecha_inicio && fecha_fin) {
           const [sR, gR] = await Promise.all([
             fetch(`${URL}/rest/v1/servicios_cobrados?fecha=gte.${fecha_inicio}&fecha=lte.${fecha_fin}`, { headers: hdrs() }),
-            fetch(`${URL}/rest/v1/gastos?fecha=gte.${fecha_inicio}&fecha=lte.${fecha_fin}`, { headers: hdrs() }),
+            fetch(`${URL}/rest/v1/pureza_gastos?fecha=gte.${fecha_inicio}&fecha=lte.${fecha_fin}`, { headers: hdrs() }),
           ]);
           const servicios = (await sR.json()) || [];
           const gastos    = (await gR.json()) || [];
@@ -144,18 +150,14 @@ module.exports = async (req, res) => {
           const gastos_jeebe      = gastos.filter(g => g.pagado_por === 'jeebe').reduce((a, g) => a + Number(g.monto), 0);
           const gastos_banco      = gastos.filter(g => g.pagado_por === 'banco').reduce((a, g) => a + Number(g.monto), 0);
           const total_gastos      = gastos_emmanuel + gastos_jeebe + gastos_banco;
-
-          const ganancia         = Math.max(0, total_ingresos - total_gastos);
-          const reparto_emmanuel = ganancia * 0.4;
-          const reparto_jeebe    = ganancia * 0.4;
-          const fondo_ahorro     = ganancia * 0.2;
+          const disponible        = Math.max(0, total_ingresos - total_gastos);
 
           return res.json({
             calculo: {
               fecha_inicio, fecha_fin,
               efectivo_emmanuel, efectivo_jeebe, transferencias, total_ingresos,
               gastos_emmanuel, gastos_jeebe, gastos_banco, total_gastos,
-              ganancia, reparto_emmanuel, reparto_jeebe, fondo_ahorro,
+              disponible,
             },
           });
         }
@@ -177,10 +179,11 @@ module.exports = async (req, res) => {
           gastos_jeebe:      Number(c.gastos_jeebe)      || 0,
           gastos_banco:      Number(c.gastos_banco)      || 0,
           total_gastos:      Number(c.total_gastos)      || 0,
-          ganancia:          Number(c.ganancia)          || 0,
+          ganancia:          Number(c.disponible)        || 0,
           reparto_emmanuel:  Number(c.reparto_emmanuel)  || 0,
           reparto_jeebe:     Number(c.reparto_jeebe)     || 0,
           fondo_ahorro:      Number(c.fondo_ahorro)      || 0,
+          caja_chica:        Number(c.caja_chica)        || 0,
           notas:             c.notas || null,
         };
         const r = await fetch(`${URL}/rest/v1/cortes`, {
