@@ -74,9 +74,11 @@ html,body{
 }
 .card-icon.blue{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2)}
 .card-icon.green{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2)}
+.card-icon.purple{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2)}
 .card-icon svg{width:26px;height:26px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .card-icon.blue svg{stroke:var(--blue-mid)}
 .card-icon.green svg{stroke:var(--green)}
+.card-icon.purple svg{stroke:#7c3aed}
 .card-title{font-size:20px;font-weight:900;letter-spacing:.01em}
 .card-desc{font-size:13px;color:var(--gray);line-height:1.6}
 .card-arrow{
@@ -85,6 +87,7 @@ html,body{
 }
 .card.blue-card .card-arrow{color:var(--blue-mid)}
 .card.green-card .card-arrow{color:var(--green)}
+.card.purple-card .card-arrow{color:#7c3aed}
 
 /* ── FOOTER ── */
 footer{
@@ -125,8 +128,20 @@ footer{
         </svg>
       </div>
       <div class="card-title">Cotizador</div>
-      <div class="card-desc">Genera cotizaciones profesionales, guárdalas con folio y búscalas cuando las necesites.</div>
+      <div class="card-desc">Genera cotizaciones profesionales y guárdalas con folio automático.</div>
       <div class="card-arrow">Abrir cotizador →</div>
+    </a>
+
+    <a href="/historial.html" class="card purple-card">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+      </div>
+      <div class="card-title">Historial</div>
+      <div class="card-desc">Consulta cotizaciones guardadas. Filtra por socio, folio o fecha.</div>
+      <div class="card-arrow">Ver historial →</div>
     </a>
 
     <a href="/finanzas.html" class="card green-card">

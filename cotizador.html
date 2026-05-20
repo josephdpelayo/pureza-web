@@ -103,6 +103,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .save-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray);cursor:pointer;margin-top:8px;user-select:none}
 .save-row input{accent-color:var(--blue);cursor:pointer}
 
+/* Socio toggle */
+.socio-toggle{display:flex;gap:8px}
+.socio-btn{
+  flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+  background:var(--white);font-size:12px;font-weight:700;font-family:var(--font);
+  color:var(--gray);cursor:pointer;transition:all .15s;letter-spacing:.04em;
+}
+.socio-btn.active{border-color:var(--blue);background:rgba(37,99,235,.06);color:var(--blue)}
+
 /* Descuento */
 .desc-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .desc-row label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);white-space:nowrap}
@@ -330,6 +339,15 @@ table.qt tbody td:not(:first-child){text-align:center}
         <input type="checkbox" id="f-guardar" checked>
         Guardar / actualizar cliente
       </label>
+    </div>
+
+    <!-- Socio -->
+    <div class="fp-section">
+      <div class="fp-sec-hd">Elaboró</div>
+      <div class="socio-toggle">
+        <button class="socio-btn active" id="soc-emmanuel" onclick="setSocio('Emmanuel')">Emmanuel</button>
+        <button class="socio-btn" id="soc-jeebe" onclick="setSocio('Jeebe')">Jeebe</button>
+      </div>
     </div>
 
     <!-- Servicios -->
@@ -616,12 +634,20 @@ function newQuote() {
 }
 
 // ── Guardar cotización ────────────────────────────────────────
+let socioActual = 'Emmanuel';
+function setSocio(s) {
+  socioActual = s;
+  document.getElementById('soc-emmanuel').classList.toggle('active', s==='Emmanuel');
+  document.getElementById('soc-jeebe').classList.toggle('active', s==='Jeebe');
+}
+
 async function guardarCotizacion() {
   const nombre = document.getElementById('f-nombre').value.trim();
   const { sub, desc, total } = totals();
   const body = {
     cliente_id: selectedId || null,
     cliente_nombre: nombre || null,
+    socio: socioActual,
     items: items.map(i => ({
       desc: i.desc, qty: i.qty,
       price: parseFloat(i.price)||0,

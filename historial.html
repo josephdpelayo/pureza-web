@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Cotizaciones — PUREZA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a40d0;--blue-mid:#2563eb;--purple:#7c3aed;
+  --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
+  --green:#16a34a;--red:#dc2626;
+}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LOCK ── */
+#lock{
+  position:fixed;inset:0;z-index:999;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+}
+.lock-logo{height:52px;margin-bottom:24px}
+.lock-title{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:18px}
+.lock-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
+.lock-input{
+  padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:15px;font-family:var(--font);text-align:center;letter-spacing:.12em;
+  color:var(--text);outline:none;transition:border-color .15s;
+}
+.lock-input:focus{border-color:var(--blue-mid)}
+.lock-btn{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;
+}
+.lock-error{font-size:12px;font-weight:700;color:var(--red);text-align:center;display:none}
+
+/* ── APP ── */
+#app{display:none;max-width:900px;margin:0 auto;padding:28px 20px 60px}
+
+/* Header */
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.page-head a{
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  color:var(--gray);text-decoration:none;letter-spacing:.04em;
+  padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;
+  transition:border-color .15s;
+}
+.page-head a:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+.page-head a svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.page-title{font-size:22px;font-weight:900;letter-spacing:.01em}
+.page-badge{
+  margin-left:auto;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);
+  color:var(--purple);font-size:11px;font-weight:800;letter-spacing:.08em;
+  padding:4px 10px;border-radius:20px;
+}
+
+/* Filters */
+.filters{
+  display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;
+  background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;
+}
+.filter-group{display:flex;flex-direction:column;gap:4px;min-width:160px;flex:1}
+.filter-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.filter-input{
+  padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+  transition:border-color .15s;background:var(--white);
+}
+.filter-input:focus{border-color:var(--blue-mid)}
+.filter-select{
+  padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+  background:var(--white);cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;
+  transition:border-color .15s;
+}
+.filter-select:focus{border-color:var(--blue-mid)}
+.btn-filtrar{
+  align-self:flex-end;padding:9px 20px;background:var(--purple);color:var(--white);
+  border:none;border-radius:8px;font-size:12px;font-weight:800;font-family:var(--font);
+  letter-spacing:.06em;cursor:pointer;transition:opacity .15s;
+}
+.btn-filtrar:hover{opacity:.85}
+.btn-limpiar{
+  align-self:flex-end;padding:9px 14px;background:none;color:var(--gray);
+  border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-weight:700;
+  font-family:var(--font);cursor:pointer;transition:all .15s;
+}
+.btn-limpiar:hover{border-color:var(--red);color:var(--red)}
+
+/* Estado */
+#estado{font-size:13px;color:var(--gray);margin-bottom:14px;font-weight:600}
+
+/* Lista */
+#lista{display:flex;flex-direction:column;gap:10px}
+
+.cot-card{
+  background:var(--white);border:1.5px solid var(--border);border-radius:14px;
+  overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer;
+}
+.cot-card:hover{border-color:var(--purple);box-shadow:0 4px 20px rgba(124,58,237,.1)}
+
+.cot-head{
+  display:flex;align-items:center;gap:12px;padding:14px 18px;
+}
+.cot-folio{
+  font-size:13px;font-weight:900;color:var(--purple);letter-spacing:.04em;
+  background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.15);
+  padding:4px 10px;border-radius:6px;white-space:nowrap;
+}
+.cot-cliente{font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cot-cliente span{font-size:12px;font-weight:500;color:var(--gray);display:block}
+.cot-total{font-size:15px;font-weight:900;text-align:right;white-space:nowrap}
+.cot-total span{font-size:11px;font-weight:600;color:var(--gray);display:block;text-align:right}
+.cot-chevron{
+  width:20px;height:20px;flex-shrink:0;color:var(--gray);
+  transition:transform .2s;
+}
+.cot-card.open .cot-chevron{transform:rotate(180deg)}
+
+.cot-body{
+  display:none;padding:0 18px 16px;border-top:1px solid var(--border);
+}
+.cot-card.open .cot-body{display:block}
+
+.cot-items{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.cot-items th{
+  font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--gray);padding:0 0 6px;text-align:left;border-bottom:1px solid var(--border);
+}
+.cot-items th:last-child,.cot-items td:last-child{text-align:right}
+.cot-items td{padding:7px 0;border-bottom:1px solid var(--border);color:var(--text)}
+.cot-items tr:last-child td{border-bottom:none}
+.cot-totals{margin-top:12px;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.cot-totals-row{display:flex;gap:16px;font-size:12px;color:var(--gray)}
+.cot-totals-row strong{color:var(--text);font-size:14px;font-weight:900}
+
+.cot-meta{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:10px;
+  border-top:1px dashed var(--border);
+}
+.cot-pill{
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+  background:var(--bg);border:1px solid var(--border);color:var(--gray);
+}
+.cot-pill.socio{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.2);color:var(--blue-mid)}
+
+/* Vacío / cargando */
+.empty{
+  text-align:center;padding:60px 20px;color:var(--gray);
+}
+.empty svg{width:48px;height:48px;stroke:var(--border);fill:none;stroke-width:1.5;margin-bottom:12px}
+.empty p{font-size:14px;font-weight:600}
+
+.spinner-wrap{text-align:center;padding:48px;color:var(--gray);font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <img src="/logo.png" alt="PUREZA" class="lock-logo">
+  <div class="lock-title">Acceso Admin</div>
+  <div class="lock-form">
+    <input type="password" id="pwd-input" class="lock-input" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter') checkPwd()">
+    <button class="lock-btn" onclick="checkPwd()">Entrar</button>
+    <div class="lock-error" id="pwd-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="page-head">
+    <a href="/admin.html">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Admin
+    </a>
+    <div class="page-title">Historial de Cotizaciones</div>
+    <div class="page-badge" id="badge" style="display:none"></div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+
+    <div class="filter-group">
+      <div class="filter-label">Buscar folio o cliente</div>
+      <input type="text" class="filter-input" id="f-q" placeholder="COT-0001 o nombre..."
+        onkeydown="if(event.key==='Enter') aplicar()">
+    </div>
+
+    <div class="filter-group" style="max-width:150px">
+      <div class="filter-label">Socio</div>
+      <select class="filter-select" id="f-socio">
+        <option value="">Todos</option>
+        <option value="Emmanuel">Emmanuel</option>
+        <option value="Jeebe">Jeebe</option>
+      </select>
+    </div>
+
+    <div class="filter-group" style="max-width:150px">
+      <div class="filter-label">Período</div>
+      <select class="filter-select" id="f-periodo" onchange="onPeriodo()">
+        <option value="">Todo el tiempo</option>
+        <option value="hoy">Hoy</option>
+        <option value="semana">Esta semana</option>
+        <option value="mes">Este mes</option>
+        <option value="custom">Rango personalizado</option>
+      </select>
+    </div>
+
+    <div class="filter-group" id="wrap-desde" style="max-width:150px;display:none">
+      <div class="filter-label">Desde</div>
+      <input type="date" class="filter-input" id="f-desde">
+    </div>
+
+    <div class="filter-group" id="wrap-hasta" style="max-width:150px;display:none">
+      <div class="filter-label">Hasta</div>
+      <input type="date" class="filter-input" id="f-hasta">
+    </div>
+
+    <button class="btn-filtrar" onclick="aplicar()">Filtrar</button>
+    <button class="btn-limpiar" onclick="limpiar()">Limpiar</button>
+  </div>
+
+  <div id="estado"></div>
+  <div id="lista"></div>
+</div>
+
+<script>
+const KEY = 'pureza-auth', PWD = 'Pureza2000';
+
+function checkPwd(){
+  if(document.getElementById('pwd-input').value === PWD){
+    localStorage.setItem(KEY, PWD);
+    unlock();
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+  }
+}
+
+function unlock(){
+  document.getElementById('lock').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  aplicar();
+}
+
+if(localStorage.getItem(KEY) === PWD) unlock();
+else document.getElementById('pwd-input').focus();
+
+// ── Período helpers ──────────────────────────────────────────
+function onPeriodo(){
+  const v = document.getElementById('f-periodo').value;
+  const custom = v === 'custom';
+  document.getElementById('wrap-desde').style.display = custom ? '' : 'none';
+  document.getElementById('wrap-hasta').style.display = custom ? '' : 'none';
+}
+
+function periodoRango(v){
+  const hoy = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if(v === 'hoy'){
+    const s = fmt(hoy);
+    return { desde: s+'T00:00:00', hasta: s+'T23:59:59' };
+  }
+  if(v === 'semana'){
+    const lunes = new Date(hoy);
+    lunes.setDate(hoy.getDate() - ((hoy.getDay()+6)%7));
+    return { desde: fmt(lunes)+'T00:00:00', hasta: fmt(hoy)+'T23:59:59' };
+  }
+  if(v === 'mes'){
+    const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    return { desde: fmt(inicio)+'T00:00:00', hasta: fmt(hoy)+'T23:59:59' };
+  }
+  return null;
+}
+
+// ── Fetch & render ───────────────────────────────────────────
+async function aplicar(){
+  const lista = document.getElementById('lista');
+  const estado = document.getElementById('estado');
+  lista.innerHTML = '<div class="spinner-wrap">Cargando...</div>';
+  estado.textContent = '';
+
+  const q      = document.getElementById('f-q').value.trim();
+  const socio  = document.getElementById('f-socio').value;
+  const periodo = document.getElementById('f-periodo').value;
+
+  let desde = '', hasta = '';
+  if(periodo && periodo !== 'custom'){
+    const r = periodoRango(periodo);
+    if(r){ desde = r.desde; hasta = r.hasta; }
+  } else if(periodo === 'custom'){
+    desde = document.getElementById('f-desde').value;
+    hasta = document.getElementById('f-hasta').value;
+    if(hasta) hasta += 'T23:59:59';
+  }
+
+  const params = new URLSearchParams();
+  if(q)     params.set('q', q);
+  if(socio) params.set('socio', socio);
+  if(desde) params.set('desde', desde);
+  if(hasta) params.set('hasta', hasta);
+
+  try{
+    const r = await fetch('/api/cotizaciones?' + params.toString());
+    const data = await r.json();
+    const cots = data.cotizaciones || [];
+    renderLista(cots);
+  } catch(e){
+    lista.innerHTML = '<div class="empty"><p>Error al cargar cotizaciones</p></div>';
+  }
+}
+
+function renderLista(cots){
+  const lista = document.getElementById('lista');
+  const estado = document.getElementById('estado');
+  const badge = document.getElementById('badge');
+
+  badge.textContent = cots.length + ' cotizaciones';
+  badge.style.display = cots.length ? '' : 'none';
+
+  if(!cots.length){
+    estado.textContent = '';
+    lista.innerHTML = `
+      <div class="empty">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <p>No se encontraron cotizaciones</p>
+      </div>`;
+    return;
+  }
+
+  estado.textContent = cots.length + ' resultado' + (cots.length!==1?'s':'') + ' encontrado' + (cots.length!==1?'s':'');
+  lista.innerHTML = cots.map(c => cotCard(c)).join('');
+}
+
+function fmt$(n){ return '$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function fmtFecha(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function cotCard(c){
+  const items = Array.isArray(c.items) ? c.items : [];
+  const rowsHtml = items.map(i=>
+    `<tr>
+      <td>${escHtml(i.desc||'')}</td>
+      <td style="text-align:center">${i.qty||1}</td>
+      <td style="text-align:right">${fmt$(i.price)}</td>
+      <td style="text-align:right">${fmt$(i.total)}</td>
+    </tr>`
+  ).join('');
+
+  const descRow = Number(c.descuento) > 0
+    ? `<div class="cot-totals-row"><span>Descuento</span><span>-${fmt$(c.descuento)}</span></div>`
+    : '';
+  const subRow = Number(c.descuento) > 0
+    ? `<div class="cot-totals-row"><span>Subtotal</span><span>${fmt$(c.subtotal)}</span></div>`
+    : '';
+
+  const socioHtml = c.socio
+    ? `<span class="cot-pill socio">${escHtml(c.socio)}</span>`
+    : '';
+
+  return `
+  <div class="cot-card" onclick="toggleCard(this)">
+    <div class="cot-head">
+      <div class="cot-folio">${escHtml(c.folio||'—')}</div>
+      <div class="cot-cliente">
+        ${c.cliente_nombre ? escHtml(c.cliente_nombre) : '<span style="color:var(--gray);font-style:italic">Sin nombre</span>'}
+        <span>${fmtFecha(c.created_at)}</span>
+      </div>
+      <div class="cot-total">
+        ${fmt$(c.total)}
+        <span>Total</span>
+      </div>
+      <svg class="cot-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <div class="cot-body">
+      <table class="cot-items">
+        <thead>
+          <tr>
+            <th>Servicio</th>
+            <th style="text-align:center">Cant.</th>
+            <th style="text-align:right">Precio</th>
+            <th style="text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+      <div class="cot-totals">
+        ${subRow}
+        ${descRow}
+        <div class="cot-totals-row"><span>Total</span><strong>${fmt$(c.total)}</strong></div>
+      </div>
+      <div class="cot-meta">
+        ${socioHtml}
+        <span class="cot-pill">${fmtFecha(c.created_at)}</span>
+        <span class="cot-pill">${escHtml(c.folio||'')}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleCard(el){
+  el.classList.toggle('open');
+}
+
+function limpiar(){
+  document.getElementById('f-q').value = '';
+  document.getElementById('f-socio').value = '';
+  document.getElementById('f-periodo').value = '';
+  document.getElementById('f-desde').value = '';
+  document.getElementById('f-hasta').value = '';
+  document.getElementById('wrap-desde').style.display = 'none';
+  document.getElementById('wrap-hasta').style.display = 'none';
+  aplicar();
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
