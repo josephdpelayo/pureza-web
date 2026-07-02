@@ -47,18 +47,16 @@ main{padding-top:56px;min-height:100vh}
 /* ── BALANCE CARDS ── */
 .balance-grid{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(2,1fr);
   gap:12px;margin-bottom:24px;
 }
-@media(max-width:800px){.balance-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.balance-grid{grid-template-columns:1fr}}
 .balance-card{
   background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px;
 }
 .bc-label{font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gray);margin-bottom:6px}
 .bc-amount{font-size:22px;font-weight:900;line-height:1;letter-spacing:-.02em}
-.bc-amount.emmanuel{color:var(--blue-mid)}
-.bc-amount.jeebe{color:var(--purple)}
-.bc-amount.banco{color:var(--teal)}
+.bc-amount.caja{color:var(--blue-mid)}
 .bc-amount.ahorro{color:var(--green)}
 .bc-sub{font-size:10px;color:var(--gray);margin-top:4px}
 
@@ -217,6 +215,20 @@ main{padding-top:56px;min-height:100vh}
 .cs-row.total .v{color:var(--blue-mid)}
 .cs-row.total-red .v{color:var(--red)}
 
+/* Banners de advertencia del corte */
+.corte-alerta{
+  border-radius:12px;padding:14px 18px;margin-bottom:16px;display:none;
+}
+.corte-alerta.perdida{
+  background:#fff7ed;border:1.5px solid #fb923c;color:#9a3412;
+}
+.corte-alerta.traslape{
+  background:#fefce8;border:1.5px solid #facc15;color:#713f12;
+}
+.alerta-titulo{font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+.alerta-body{font-size:12px;line-height:1.5}
+.alerta-body strong{font-weight:800}
+
 /* Disponible banner */
 .disponible-banner{
   background:var(--blue-dark);color:var(--white);border-radius:12px;
@@ -363,19 +375,9 @@ main{padding-top:56px;min-height:100vh}
 <div class="tab-panel active" id="tab-resumen">
   <div class="balance-grid">
     <div class="balance-card">
-      <div class="bc-label">Emmanuel</div>
-      <div class="bc-amount emmanuel" id="bal-emmanuel">…</div>
-      <div class="bc-sub">Efectivo en mano</div>
-    </div>
-    <div class="balance-card">
-      <div class="bc-label">Jeebe</div>
-      <div class="bc-amount jeebe" id="bal-jeebe">…</div>
-      <div class="bc-sub">Efectivo en mano</div>
-    </div>
-    <div class="balance-card">
-      <div class="bc-label">Banco</div>
-      <div class="bc-amount banco" id="bal-banco">…</div>
-      <div class="bc-sub">Transferencias</div>
+      <div class="bc-label">Caja Pureza</div>
+      <div class="bc-amount caja" id="bal-caja">…</div>
+      <div class="bc-sub">Efectivo disponible</div>
     </div>
     <div class="balance-card">
       <div class="bc-label">Ahorro</div>
@@ -413,15 +415,6 @@ main{padding-top:56px;min-height:100vh}
       <div class="field">
         <label>Monto *</label>
         <input type="number" id="ing-monto" placeholder="0" min="0" step="1">
-      </div>
-      <div class="field">
-        <label>Cobrado por *</label>
-        <div class="seg-ctrl" id="seg-cobrador">
-          <button class="seg-btn" onclick="selSeg('cobrador','emmanuel',this)">Emmanuel</button>
-          <button class="seg-btn" onclick="selSeg('cobrador','jeebe',this)">Jeebe</button>
-          <button class="seg-btn" onclick="selSeg('cobrador','banco',this)">Banco</button>
-        </div>
-        <input type="hidden" id="val-cobrador">
       </div>
       <div class="field">
         <label>Fecha *</label>
@@ -470,15 +463,6 @@ main{padding-top:56px;min-height:100vh}
       <div class="field">
         <label>Monto *</label>
         <input type="number" id="gasto-monto" placeholder="0" min="0" step="1">
-      </div>
-      <div class="field">
-        <label>Pagado por *</label>
-        <div class="seg-ctrl" id="seg-pagador">
-          <button class="seg-btn" onclick="selSeg('pagador','emmanuel',this)">Emmanuel</button>
-          <button class="seg-btn" onclick="selSeg('pagador','jeebe',this)">Jeebe</button>
-          <button class="seg-btn" onclick="selSeg('pagador','banco',this)">Banco</button>
-        </div>
-        <input type="hidden" id="val-pagador">
       </div>
       <div class="field">
         <label>Fecha *</label>
@@ -534,18 +518,24 @@ main{padding-top:56px;min-height:100vh}
     <div class="corte-summary">
       <div class="cs-card">
         <div class="cs-card-title">Ingresos del período</div>
-        <div class="cs-row"><span>Efectivo Emmanuel</span><span class="v" id="cr-em-ing">$0</span></div>
-        <div class="cs-row"><span>Efectivo Jeebe</span><span class="v" id="cr-je-ing">$0</span></div>
-        <div class="cs-row"><span>Transferencias banco</span><span class="v" id="cr-ba-ing">$0</span></div>
         <div class="cs-row total"><span>Total ingresos</span><span class="v" id="cr-total-ing">$0</span></div>
       </div>
       <div class="cs-card">
         <div class="cs-card-title">Gastos del período</div>
-        <div class="cs-row"><span>Pagados por Emmanuel</span><span class="v" id="cr-em-gasto">$0</span></div>
-        <div class="cs-row"><span>Pagados por Jeebe</span><span class="v" id="cr-je-gasto">$0</span></div>
-        <div class="cs-row"><span>Pagados del banco</span><span class="v" id="cr-ba-gasto">$0</span></div>
         <div class="cs-row total total-red"><span>Total gastos</span><span class="v" id="cr-total-gasto">$0</span></div>
       </div>
+    </div>
+
+    <!-- Advertencia: período con pérdida -->
+    <div class="corte-alerta perdida" id="alerta-perdida">
+      <div class="alerta-titulo">⚠️ Período con pérdida</div>
+      <div class="alerta-body">Los gastos superan los ingresos. Pérdida: <strong id="alerta-perdida-monto">$0</strong>. No hay dinero disponible para repartir esta semana.</div>
+    </div>
+
+    <!-- Advertencia: traslape con corte existente -->
+    <div class="corte-alerta traslape" id="alerta-traslape">
+      <div class="alerta-titulo">⚠️ Período ya cortado</div>
+      <div class="alerta-body" id="alerta-traslape-body">Este rango de fechas traslapa con un corte anterior. Los balances podrían quedar incorrectos si guardas este corte.</div>
     </div>
 
     <!-- Total disponible -->
@@ -575,11 +565,6 @@ main{padding-top:56px;min-height:100vh}
         <div class="dist-item">
           <label><div class="dist-dot ahorro"></div>Va a Ahorro</label>
           <input type="number" id="dist-ah" class="di-ahorro" placeholder="0" min="0" oninput="updateDistBalance()">
-        </div>
-        <div class="dist-item">
-          <label><div class="dist-dot banco"></div>Queda en banco</label>
-          <input type="number" id="dist-banco" class="di-banco" placeholder="Automático" min="0" readonly
-            style="background:var(--bg);cursor:default;color:var(--teal);font-weight:800">
         </div>
       </div>
 
@@ -635,8 +620,6 @@ const tipoLabel = {
   gasolina:'Gasolina', productos_quimicos:'Prod. Químicos',
   publicidad:'Publicidad', materiales:'Materiales', otros:'Otros'
 };
-const cobLabel = { emmanuel:'Emmanuel', jeebe:'Jeebe', banco:'Banco' };
-
 function showToast(msg, type=''){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -682,10 +665,8 @@ async function loadResumen(){
     const r = await fetch('/api/finanzas?tipo=resumen');
     const d = await r.json();
     const b = d.balance||{};
-    document.getElementById('bal-emmanuel').textContent = fmt(b.emmanuel||0);
-    document.getElementById('bal-jeebe').textContent    = fmt(b.jeebe||0);
-    document.getElementById('bal-banco').textContent    = fmt(b.banco||0);
-    document.getElementById('bal-ahorro').textContent   = fmt(b.ahorro||0);
+    document.getElementById('bal-caja').textContent   = fmt(b.caja||0);
+    document.getElementById('bal-ahorro').textContent = fmt(b.ahorro||0);
 
     const items = [
       ...(d.servicios||[]).map(s=>({...s,_t:'ingreso'})),
@@ -703,7 +684,7 @@ async function loadResumen(){
           <div class="ai-badge ingreso">+</div>
           <div class="ai-info">
             <div class="ai-desc">${esc(item.descripcion||'Servicio cobrado')}</div>
-            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(cobLabel[item.cobrado_por]||item.cobrado_por)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}</div>
           </div>
           <div class="ai-amount ingreso">+${fmt(item.monto)}</div>
           <button class="btn-del-row" onclick="${delFn}">×</button>
@@ -713,7 +694,7 @@ async function loadResumen(){
           <div class="ai-badge gasto">−</div>
           <div class="ai-info">
             <div class="ai-desc">${esc(item.descripcion||tipoLabel[item.tipo]||'Gasto')}</div>
-            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)} · ${esc(cobLabel[item.pagado_por]||item.pagado_por)}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)}</div>
           </div>
           <div class="ai-amount gasto">−${fmt(item.monto)}</div>
           <button class="btn-del-row" onclick="${delFn}">×</button>
@@ -796,7 +777,7 @@ function renderIngresos(list){
     <div class="list-row">
       <div class="lr-info">
         <div class="lr-main">${esc(i.descripcion||'Servicio cobrado')}${i.folio_cotizacion?' <span class="tipo-tag">'+esc(i.folio_cotizacion)+'</span>':''}</div>
-        <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''} · <span class="cob-tag ${esc(i.cobrado_por)}">${esc(cobLabel[i.cobrado_por]||i.cobrado_por)}</span></div>
+        <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''}</div>
       </div>
       <span class="lr-amount ingreso">+${fmt(i.monto)}</span>
       <button class="btn-del-row" onclick="delIngreso('${esc(i.id)}')">×</button>
@@ -804,17 +785,15 @@ function renderIngresos(list){
 }
 
 async function saveIngreso(){
-  const monto      = parseFloat(document.getElementById('ing-monto').value);
-  const cobrado_por = document.getElementById('val-cobrador').value;
+  const monto = parseFloat(document.getElementById('ing-monto').value);
   if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
-  if(!cobrado_por)     return showToast('Selecciona quién cobró','red');
 
   const body={
     cotizacion_id:   document.getElementById('ing-cot-id').value||null,
     folio_cotizacion:document.getElementById('ing-cot-folio').value||null,
     cliente_nombre:  document.getElementById('ing-cliente').value.trim()||null,
     descripcion:     document.getElementById('ing-desc').value.trim()||null,
-    monto, cobrado_por,
+    monto,
     fecha: document.getElementById('ing-fecha').value||today(),
   };
   try{
@@ -825,8 +804,6 @@ async function saveIngreso(){
     showToast('Ingreso registrado ✓','green');
     ['ing-cot-search','ing-cot-id','ing-cot-folio','ing-cliente','ing-desc','ing-monto']
       .forEach(id=>document.getElementById(id).value='');
-    document.getElementById('seg-cobrador').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
-    document.getElementById('val-cobrador').value='';
     document.getElementById('ing-fecha').value=today();
     loadIngresos(); loadResumen();
   }catch(e){ showToast('Error al guardar','red'); }
@@ -862,7 +839,7 @@ function renderGastos(list){
     <div class="list-row">
       <div class="lr-info">
         <div class="lr-main"><span class="tipo-tag">${esc(tipoLabel[g.tipo]||g.tipo)}</span>${g.descripcion?' '+esc(g.descripcion):''}</div>
-        <div class="lr-sub">${fmtDate(g.fecha)} · <span class="cob-tag ${esc(g.pagado_por)}">${esc(cobLabel[g.pagado_por]||g.pagado_por)}</span></div>
+        <div class="lr-sub">${fmtDate(g.fecha)}</div>
       </div>
       <span class="lr-amount gasto">−${fmt(g.monto)}</span>
       ${g.comprobante_url?`<a class="comprobante-link" href="${esc(g.comprobante_url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Ver</a>`:''}
@@ -871,12 +848,10 @@ function renderGastos(list){
 }
 
 async function saveGasto(){
-  const tipo       = document.getElementById('val-tipo').value;
-  const monto      = parseFloat(document.getElementById('gasto-monto').value);
-  const pagado_por = document.getElementById('val-pagador').value;
+  const tipo  = document.getElementById('val-tipo').value;
+  const monto = parseFloat(document.getElementById('gasto-monto').value);
   if(!tipo)            return showToast('Selecciona el tipo de gasto','red');
   if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
-  if(!pagado_por)      return showToast('Selecciona quién pagó','red');
 
   const btn = document.getElementById('btn-save-gasto');
   btn.disabled = true;
@@ -892,7 +867,7 @@ async function saveGasto(){
   const body={
     tipo,
     descripcion: document.getElementById('gasto-desc').value.trim()||null,
-    monto, pagado_por,
+    monto,
     fecha: document.getElementById('gasto-fecha').value||today(),
     comprobante_url,
   };
@@ -903,11 +878,8 @@ async function saveGasto(){
     if(!r.ok) throw new Error();
     showToast('Gasto registrado ✓','green');
     ['gasto-desc','gasto-monto'].forEach(id=>document.getElementById(id).value='');
-    ['seg-tipo','seg-pagador'].forEach(id=>{
-      document.getElementById(id).querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
-    });
+    document.getElementById('seg-tipo').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
     document.getElementById('val-tipo').value='';
-    document.getElementById('val-pagador').value='';
     document.getElementById('gasto-fecha').value=today();
     clearFoto();
     loadGastos(); loadResumen();
@@ -996,20 +968,35 @@ async function calcularCorte(){
     const d=await r.json();
     corteCalculo=d.calculo;
 
-    document.getElementById('cr-em-ing').textContent    = fmt(corteCalculo.efectivo_emmanuel);
-    document.getElementById('cr-je-ing').textContent    = fmt(corteCalculo.efectivo_jeebe);
-    document.getElementById('cr-ba-ing').textContent    = fmt(corteCalculo.transferencias);
     document.getElementById('cr-total-ing').textContent = fmt(corteCalculo.total_ingresos);
-    document.getElementById('cr-em-gasto').textContent  = fmt(corteCalculo.gastos_emmanuel);
-    document.getElementById('cr-je-gasto').textContent  = fmt(corteCalculo.gastos_jeebe);
-    document.getElementById('cr-ba-gasto').textContent  = fmt(corteCalculo.gastos_banco);
     document.getElementById('cr-total-gasto').textContent = fmt(corteCalculo.total_gastos);
     document.getElementById('cr-disponible').textContent  = fmt(corteCalculo.disponible);
     document.getElementById('db-disponible-lbl').textContent = fmt(corteCalculo.disponible);
 
+    // Advertencia: pérdida
+    const alertaPerdida = document.getElementById('alerta-perdida');
+    if(corteCalculo.perdida > 0){
+      document.getElementById('alerta-perdida-monto').textContent = fmt(corteCalculo.perdida);
+      alertaPerdida.style.display = 'block';
+    } else {
+      alertaPerdida.style.display = 'none';
+    }
+
+    // Advertencia: traslape con cortes existentes
+    const alertaTraslape = document.getElementById('alerta-traslape');
+    if(corteCalculo.traslapes && corteCalculo.traslapes.length > 0){
+      const lista = corteCalculo.traslapes.map(c =>
+        `${fmtDate(c.fecha_inicio)} – ${fmtDate(c.fecha_fin)}`
+      ).join(', ');
+      document.getElementById('alerta-traslape-body').innerHTML =
+        `Este rango traslapa con ${corteCalculo.traslapes.length > 1 ? 'cortes anteriores' : 'un corte anterior'}: <strong>${lista}</strong>. Los balances pueden quedar incorrectos si guardas este corte.`;
+      alertaTraslape.style.display = 'block';
+    } else {
+      alertaTraslape.style.display = 'none';
+    }
+
     // Reset distribution inputs
     ['dist-em','dist-je','dist-ah'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('dist-banco').value='';
     updateDistBalance();
 
     document.getElementById('corte-result-area').style.display='block';
@@ -1032,21 +1019,23 @@ function updateDistBalance(){
   const em = parseFloat(document.getElementById('dist-em').value)||0;
   const je = parseFloat(document.getElementById('dist-je').value)||0;
   const ah = parseFloat(document.getElementById('dist-ah').value)||0;
-  const banco = Math.round(disponible - em - je - ah);
+  const sinRepartir = Math.round(disponible - em - je - ah);
 
-  document.getElementById('dist-banco').value = banco >= 0 ? banco : '';
-  const sum = em + je + ah + Math.max(0, banco);
   document.getElementById('db-sum').textContent = fmt(em + je + ah);
 
   const statusEl = document.getElementById('db-status');
   const saveBtn  = document.getElementById('btn-save-corte');
 
-  if(banco < 0){
-    statusEl.textContent = `Excede ${fmt(Math.abs(banco))}`;
+  if(sinRepartir < 0){
+    statusEl.textContent = `Excede ${fmt(Math.abs(sinRepartir))}`;
     statusEl.className   = 'db-status over';
     saveBtn.disabled     = true;
+  } else if(sinRepartir === 0){
+    statusEl.textContent = '✓ Cuadrado';
+    statusEl.className   = 'db-status ok';
+    saveBtn.disabled     = false;
   } else {
-    statusEl.textContent = `✓ Cuadrado (banco: ${fmt(banco)})`;
+    statusEl.textContent = `Sin repartir: ${fmt(sinRepartir)}`;
     statusEl.className   = 'db-status ok';
     saveBtn.disabled     = false;
   }
@@ -1054,17 +1043,15 @@ function updateDistBalance(){
 
 async function guardarCorte(){
   if(!corteCalculo) return;
-  const em    = parseFloat(document.getElementById('dist-em').value)||0;
-  const je    = parseFloat(document.getElementById('dist-je').value)||0;
-  const ah    = parseFloat(document.getElementById('dist-ah').value)||0;
-  const banco = Math.max(0, Math.round(corteCalculo.disponible - em - je - ah));
+  const em = parseFloat(document.getElementById('dist-em').value)||0;
+  const je = parseFloat(document.getElementById('dist-je').value)||0;
+  const ah = parseFloat(document.getElementById('dist-ah').value)||0;
 
   const body = {
     ...corteCalculo,
     reparto_emmanuel: em,
     reparto_jeebe:    je,
     fondo_ahorro:     ah,
-    caja_chica:       banco,
   };
 
   document.getElementById('btn-save-corte').disabled=true;
@@ -1102,7 +1089,6 @@ async function loadCorteHist(){
           <div>Emmanuel: <span>${fmt(c.reparto_emmanuel)}</span></div>
           <div>Jeebe: <span>${fmt(c.reparto_jeebe)}</span></div>
           <div>Ahorro: <span>${fmt(c.fondo_ahorro)}</span></div>
-          ${c.caja_chica>0?`<div>Queda en banco: <span>${fmt(c.caja_chica)}</span></div>`:''}
         </div>
       </div>`).join('');
   }catch(e){}

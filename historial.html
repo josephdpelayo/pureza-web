@@ -145,8 +145,6 @@ html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-hei
   font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
   background:var(--bg);border:1px solid var(--border);color:var(--gray);
 }
-.cot-pill.socio{background:rgba(37,99,235,.06);border-color:rgba(37,99,235,.2);color:var(--blue-mid)}
-
 /* Vacío / cargando */
 .empty{
   text-align:center;padding:60px 20px;color:var(--gray);
@@ -190,15 +188,6 @@ html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-hei
       <div class="filter-label">Buscar folio o cliente</div>
       <input type="text" class="filter-input" id="f-q" placeholder="COT-0001 o nombre..."
         onkeydown="if(event.key==='Enter') aplicar()">
-    </div>
-
-    <div class="filter-group" style="max-width:150px">
-      <div class="filter-label">Socio</div>
-      <select class="filter-select" id="f-socio">
-        <option value="">Todos</option>
-        <option value="Emmanuel">Emmanuel</option>
-        <option value="Jeebe">Jeebe</option>
-      </select>
     </div>
 
     <div class="filter-group" style="max-width:150px">
@@ -289,7 +278,6 @@ async function aplicar(){
   estado.textContent = '';
 
   const q      = document.getElementById('f-q').value.trim();
-  const socio  = document.getElementById('f-socio').value;
   const periodo = document.getElementById('f-periodo').value;
 
   let desde = '', hasta = '';
@@ -304,7 +292,6 @@ async function aplicar(){
 
   const params = new URLSearchParams();
   if(q)     params.set('q', q);
-  if(socio) params.set('socio', socio);
   if(desde) params.set('desde', desde);
   if(hasta) params.set('hasta', hasta);
 
@@ -366,10 +353,6 @@ function cotCard(c){
     ? `<div class="cot-totals-row"><span>Subtotal</span><span>${fmt$(c.subtotal)}</span></div>`
     : '';
 
-  const socioHtml = c.socio
-    ? `<span class="cot-pill socio">${escHtml(c.socio)}</span>`
-    : '';
-
   return `
   <div class="cot-card" onclick="toggleCard(this)">
     <div class="cot-head">
@@ -404,7 +387,6 @@ function cotCard(c){
         <div class="cot-totals-row"><span>Total</span><strong>${fmt$(c.total)}</strong></div>
       </div>
       <div class="cot-meta">
-        ${socioHtml}
         <span class="cot-pill">${fmtFecha(c.created_at)}</span>
         <span class="cot-pill">${escHtml(c.folio||'')}</span>
       </div>
@@ -418,7 +400,6 @@ function toggleCard(el){
 
 function limpiar(){
   document.getElementById('f-q').value = '';
-  document.getElementById('f-socio').value = '';
   document.getElementById('f-periodo').value = '';
   document.getElementById('f-desde').value = '';
   document.getElementById('f-hasta').value = '';

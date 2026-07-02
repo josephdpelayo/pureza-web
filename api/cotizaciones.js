@@ -29,10 +29,9 @@ module.exports = async (req, res) => {
         const data = await r.json();
         return res.json({ cotizacion: Array.isArray(data) ? data[0] : data });
       }
-      const { socio, desde, hasta } = req.query || {};
+      const { desde, hasta } = req.query || {};
       let url = `${URL}/rest/v1/cotizaciones?order=created_at.desc&limit=500`;
       if (q) url += `&or=(folio.ilike.*${encodeURIComponent(q)}*,cliente_nombre.ilike.*${encodeURIComponent(q)}*)`;
-      if (socio) url += `&socio=eq.${encodeURIComponent(socio)}`;
       if (desde) url += `&created_at=gte.${encodeURIComponent(desde)}`;
       if (hasta) url += `&created_at=lte.${encodeURIComponent(hasta)}`;
       const r = await fetch(url, { headers: hdrs() });
@@ -41,17 +40,15 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const { cliente_id, cliente_nombre, socio, items, subtotal, descuento, total } = req.body || {};
+      const { cliente_id, cliente_nombre, items, subtotal, total } = req.body || {};
       if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'items requeridos' });
       const folio = await nextFolio();
       const body = {
         folio,
         cliente_id: cliente_id || null,
         cliente_nombre: cliente_nombre || null,
-        socio: socio || null,
         items,
         subtotal: Number(subtotal) || 0,
-        descuento: Number(descuento) || 0,
         total: Number(total) || 0,
       };
       const r = await fetch(`${URL}/rest/v1/cotizaciones`, {

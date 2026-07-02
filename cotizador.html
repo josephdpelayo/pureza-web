@@ -103,24 +103,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .save-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--gray);cursor:pointer;margin-top:8px;user-select:none}
 .save-row input{accent-color:var(--blue);cursor:pointer}
 
-/* Socio toggle */
-.socio-toggle{display:flex;gap:8px}
-.socio-btn{
-  flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
-  background:var(--white);font-size:12px;font-weight:700;font-family:var(--font);
-  color:var(--gray);cursor:pointer;transition:all .15s;letter-spacing:.04em;
-}
-.socio-btn.active{border-color:var(--blue);background:rgba(37,99,235,.06);color:var(--blue)}
-
-/* Descuento */
-.desc-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.desc-row label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);white-space:nowrap}
-.desc-row input{
-  width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
-  font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s
-}
-.desc-row input:focus{border-color:var(--blue)}
-
 /* Mini totals */
 .mini-totals{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:12px}
 .mt-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--gray)}
@@ -316,7 +298,8 @@ table.qt tbody td:not(:first-child){text-align:center}
   <div class="fp-head">
     <img src="/logo.png" alt="PUREZA">
     <span class="fp-head-title">Cotizador</span>
-    <a href="/finanzas.html" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Finanzas →</a>
+    <a href="/historial.html" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Historial →</a>
+    <a href="/finanzas.html" style="font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Finanzas →</a>
   </div>
   <div class="fp-body">
 
@@ -341,15 +324,6 @@ table.qt tbody td:not(:first-child){text-align:center}
       </label>
     </div>
 
-    <!-- Socio -->
-    <div class="fp-section">
-      <div class="fp-sec-hd">Elaboró</div>
-      <div class="socio-toggle">
-        <button class="socio-btn active" id="soc-emmanuel" onclick="setSocio('Emmanuel')">Emmanuel</button>
-        <button class="socio-btn" id="soc-jeebe" onclick="setSocio('Jeebe')">Jeebe</button>
-      </div>
-    </div>
-
     <!-- Servicios -->
     <div class="fp-section">
       <div class="fp-sec-row">
@@ -366,12 +340,8 @@ table.qt tbody td:not(:first-child){text-align:center}
       <div id="items-list"></div>
     </div>
 
-    <!-- Descuento + totales -->
+    <!-- Totales -->
     <div class="fp-section">
-      <div class="desc-row">
-        <label>Descuento $</label>
-        <input type="number" id="f-desc" placeholder="0" min="0" oninput="updateQ()">
-      </div>
       <div class="mini-totals" id="mini-totals"></div>
     </div>
 
@@ -430,7 +400,6 @@ table.qt tbody td:not(:first-child){text-align:center}
       </div>
       <div class="q-subs">
         <div class="q-sub-row"><span>Subtotal</span><span id="q-sub">$0</span></div>
-        <div class="q-sub-row"><span>Descuentos</span><span id="q-desc">$0</span></div>
       </div>
       <div class="q-total-row"><span>Total</span><span id="q-total">$0</span></div>
     </div>
@@ -571,8 +540,7 @@ function renderItems() {
 // ── Totals ────────────────────────────────────────────────────
 function totals() {
   const sub = items.reduce((s,i)=>s+(i.qty*(parseFloat(i.price)||0)),0);
-  const desc = parseFloat(document.getElementById('f-desc').value)||0;
-  return {sub, desc, total: Math.max(0, sub-desc)};
+  return {sub, total: sub};
 }
 function fmt(n){ return '$'+Math.round(n).toLocaleString('es-MX'); }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -589,7 +557,7 @@ function updateQ() {
   if(tel)    lines.push('Número: '+tel);
   document.getElementById('q-cliente').innerHTML = lines.join('<br>')||'—';
 
-  const {sub, desc, total} = totals();
+  const {sub, total} = totals();
   const MIN = 4;
   const dataRows = items.map(i=>{
     const t = i.qty*(parseFloat(i.price)||0);
@@ -605,12 +573,10 @@ function updateQ() {
   document.getElementById('q-tbody').innerHTML = dataRows + empty;
 
   document.getElementById('q-sub').textContent   = fmt(sub);
-  document.getElementById('q-desc').textContent  = fmt(desc);
   document.getElementById('q-total').textContent = fmt(total);
 
   document.getElementById('mini-totals').innerHTML = `
     <div class="mt-row"><span>Subtotal</span><span>${fmt(sub)}</span></div>
-    ${desc>0?`<div class="mt-row"><span>Descuento</span><span>-${fmt(desc)}</span></div>`:''}
     <div class="mt-row main"><span>Total</span><span>${fmt(total)}</span></div>`;
 }
 
@@ -626,7 +592,7 @@ async function generar() {
 
 function newQuote() {
   selectedId = null;
-  ['cs-input','f-nombre','f-domicilio','f-tel','f-desc'].forEach(id=>{
+  ['cs-input','f-nombre','f-domicilio','f-tel'].forEach(id=>{
     document.getElementById(id).value='';
   });
   items = [];
@@ -634,26 +600,18 @@ function newQuote() {
 }
 
 // ── Guardar cotización ────────────────────────────────────────
-let socioActual = 'Emmanuel';
-function setSocio(s) {
-  socioActual = s;
-  document.getElementById('soc-emmanuel').classList.toggle('active', s==='Emmanuel');
-  document.getElementById('soc-jeebe').classList.toggle('active', s==='Jeebe');
-}
-
 async function guardarCotizacion() {
   const nombre = document.getElementById('f-nombre').value.trim();
-  const { sub, desc, total } = totals();
+  const { sub, total } = totals();
   const body = {
     cliente_id: selectedId || null,
     cliente_nombre: nombre || null,
-    socio: socioActual,
     items: items.map(i => ({
       desc: i.desc, qty: i.qty,
       price: parseFloat(i.price)||0,
       total: i.qty*(parseFloat(i.price)||0),
     })),
-    subtotal: sub, descuento: desc, total,
+    subtotal: sub, total,
   };
   if(document.getElementById('f-guardar').checked && nombre)
     await saveClientAPI(nombre, document.getElementById('f-domicilio').value.trim(), document.getElementById('f-tel').value.trim());

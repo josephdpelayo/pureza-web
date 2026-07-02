@@ -9,28 +9,28 @@ const hdrs = () => ({
 
 async function getBalance() {
   const [sR, gR, cR] = await Promise.all([
-    fetch(`${URL}/rest/v1/servicios_cobrados?select=cobrado_por,monto`, { headers: hdrs() }),
-    fetch(`${URL}/rest/v1/pureza_gastos?select=pagado_por,monto`, { headers: hdrs() }),
+    fetch(`${URL}/rest/v1/servicios_cobrados?select=monto`, { headers: hdrs() }),
+    fetch(`${URL}/rest/v1/pureza_gastos?select=monto`, { headers: hdrs() }),
     fetch(`${URL}/rest/v1/cortes?select=reparto_emmanuel,reparto_jeebe,fondo_ahorro`, { headers: hdrs() }),
   ]);
   const servicios = await sR.json();
   const gastos    = await gR.json();
   const cortes    = await cR.json();
 
-  const bal = { emmanuel: 0, jeebe: 0, banco: 0, ahorro: 0 };
+  const bal = { caja: 0, ahorro: 0 };
 
   if (Array.isArray(servicios)) {
-    for (const s of servicios) bal[s.cobrado_por] = (bal[s.cobrado_por] || 0) + Number(s.monto);
+    for (const s of servicios) bal.caja += Number(s.monto);
   }
   if (Array.isArray(gastos)) {
-    for (const g of gastos) bal[g.pagado_por] = (bal[g.pagado_por] || 0) - Number(g.monto);
+    for (const g of gastos) bal.caja -= Number(g.monto);
   }
+  // Lo repartido en cortes anteriores sale de la caja; lo no repartido se queda.
   if (Array.isArray(cortes)) {
     for (const c of cortes) {
-      bal.emmanuel -= Number(c.reparto_emmanuel);
-      bal.jeebe    -= Number(c.reparto_jeebe);
-      bal.banco    -= Number(c.fondo_ahorro);
-      bal.ahorro   += Number(c.fondo_ahorro);
+      bal.caja   -= Number(c.reparto_emmanuel || 0);
+      bal.caja   -= Number(c.reparto_jeebe     || 0);
+      bal.ahorro += Number(c.fondo_ahorro      || 0);
     }
   }
   return bal;
@@ -68,8 +68,8 @@ module.exports = async (req, res) => {
         return res.json({ ingresos: (await r.json()) || [] });
       }
       if (req.method === 'POST') {
-        const { cotizacion_id, folio_cotizacion, cliente_id, cliente_nombre, descripcion, monto, cobrado_por, fecha } = req.body || {};
-        if (!monto || !cobrado_por) return res.status(400).json({ error: 'monto y cobrado_por requeridos' });
+        const { cotizacion_id, folio_cotizacion, cliente_id, cliente_nombre, descripcion, monto, fecha } = req.body || {};
+        if (!monto) return res.status(400).json({ error: 'monto requerido' });
         const body = {
           cotizacion_id:    cotizacion_id || null,
           folio_cotizacion: folio_cotizacion || null,
@@ -77,7 +77,10 @@ module.exports = async (req, res) => {
           cliente_nombre:   cliente_nombre || null,
           descripcion:      descripcion || null,
           monto:            Number(monto),
-          cobrado_por,
+          // cobrado_por ya no se rastrea (cuenta única de Pureza).
+          // Se manda null explícito: requiere la migración migracion_cuenta_unica.sql
+          // (DROP NOT NULL) para no fallar el insert.
+          cobrado_por: null,
           fecha: fecha || new Date().toISOString().split('T')[0],
         };
         const r = await fetch(`${URL}/rest/v1/servicios_cobrados`, {
@@ -105,13 +108,16 @@ module.exports = async (req, res) => {
         return res.json({ gastos: (await r.json()) || [] });
       }
       if (req.method === 'POST') {
-        const { tipo: tipoGasto, descripcion, monto, pagado_por, fecha, comprobante_url } = req.body || {};
-        if (!tipoGasto || !monto || !pagado_por) return res.status(400).json({ error: 'tipo, monto y pagado_por requeridos' });
+        const { tipo: tipoGasto, descripcion, monto, fecha, comprobante_url } = req.body || {};
+        if (!tipoGasto || !monto) return res.status(400).json({ error: 'tipo y monto requeridos' });
         const body = {
           tipo:            tipoGasto,
           descripcion:     descripcion || null,
           monto:           Number(monto),
-          pagado_por,
+          // pagado_por ya no se rastrea (cuenta única de Pureza).
+          // Se manda null explícito: requiere la migración migracion_cuenta_unica.sql
+          // (DROP NOT NULL) para no fallar el insert.
+          pagado_por: null,
           comprobante_url: comprobante_url || null,
           fecha: fecha || new Date().toISOString().split('T')[0],
         };
@@ -135,30 +141,27 @@ module.exports = async (req, res) => {
         const { calcular, fecha_inicio, fecha_fin } = req.query;
 
         if (calcular && fecha_inicio && fecha_fin) {
-          const [sR, gR] = await Promise.all([
+          const [sR, gR, trR] = await Promise.all([
             fetch(`${URL}/rest/v1/servicios_cobrados?fecha=gte.${fecha_inicio}&fecha=lte.${fecha_fin}`, { headers: hdrs() }),
             fetch(`${URL}/rest/v1/pureza_gastos?fecha=gte.${fecha_inicio}&fecha=lte.${fecha_fin}`, { headers: hdrs() }),
+            fetch(`${URL}/rest/v1/cortes?select=id,fecha_inicio,fecha_fin&fecha_inicio=lte.${fecha_fin}&fecha_fin=gte.${fecha_inicio}`, { headers: hdrs() }),
           ]);
-          const servicios = (await sR.json()) || [];
-          const gastos    = (await gR.json()) || [];
+          const servicios  = (await sR.json()) || [];
+          const gastos     = (await gR.json()) || [];
+          const trData     = await trR.json();
+          const traslapes  = Array.isArray(trData) ? trData : [];
 
-          const efectivo_emmanuel = servicios.filter(s => s.cobrado_por === 'emmanuel').reduce((a, s) => a + Number(s.monto), 0);
-          const efectivo_jeebe    = servicios.filter(s => s.cobrado_por === 'jeebe').reduce((a, s) => a + Number(s.monto), 0);
-          const transferencias    = servicios.filter(s => s.cobrado_por === 'banco').reduce((a, s) => a + Number(s.monto), 0);
-          const total_ingresos    = efectivo_emmanuel + efectivo_jeebe + transferencias;
-
-          const gastos_emmanuel   = gastos.filter(g => g.pagado_por === 'emmanuel').reduce((a, g) => a + Number(g.monto), 0);
-          const gastos_jeebe      = gastos.filter(g => g.pagado_por === 'jeebe').reduce((a, g) => a + Number(g.monto), 0);
-          const gastos_banco      = gastos.filter(g => g.pagado_por === 'banco').reduce((a, g) => a + Number(g.monto), 0);
-          const total_gastos      = gastos_emmanuel + gastos_jeebe + gastos_banco;
-          const disponible        = Math.max(0, total_ingresos - total_gastos);
+          const total_ingresos = servicios.reduce((a, s) => a + Number(s.monto), 0);
+          const total_gastos   = gastos.reduce((a, g) => a + Number(g.monto), 0);
+          const disponible     = Math.max(0, total_ingresos - total_gastos);
+          const perdida        = total_gastos > total_ingresos ? total_gastos - total_ingresos : 0;
 
           return res.json({
             calculo: {
               fecha_inicio, fecha_fin,
-              efectivo_emmanuel, efectivo_jeebe, transferencias, total_ingresos,
-              gastos_emmanuel, gastos_jeebe, gastos_banco, total_gastos,
-              disponible,
+              total_ingresos, total_gastos,
+              disponible, perdida,
+              traslapes,
             },
           });
         }
@@ -172,19 +175,12 @@ module.exports = async (req, res) => {
         const body = {
           fecha_inicio:      c.fecha_inicio,
           fecha_fin:         c.fecha_fin,
-          efectivo_emmanuel: Number(c.efectivo_emmanuel) || 0,
-          efectivo_jeebe:    Number(c.efectivo_jeebe)    || 0,
-          transferencias:    Number(c.transferencias)    || 0,
           total_ingresos:    Number(c.total_ingresos)    || 0,
-          gastos_emmanuel:   Number(c.gastos_emmanuel)   || 0,
-          gastos_jeebe:      Number(c.gastos_jeebe)      || 0,
-          gastos_banco:      Number(c.gastos_banco)      || 0,
           total_gastos:      Number(c.total_gastos)      || 0,
           ganancia:          Number(c.disponible)        || 0,
           reparto_emmanuel:  Number(c.reparto_emmanuel)  || 0,
           reparto_jeebe:     Number(c.reparto_jeebe)     || 0,
           fondo_ahorro:      Number(c.fondo_ahorro)      || 0,
-          caja_chica:        Number(c.caja_chica)        || 0,
           notas:             c.notas || null,
         };
         const r = await fetch(`${URL}/rest/v1/cortes`, {
