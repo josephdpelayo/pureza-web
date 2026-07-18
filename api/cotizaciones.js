@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const { cliente_id, cliente_nombre, items, subtotal, total } = req.body || {};
+      const { cliente_id, cliente_nombre, items, subtotal, descuento, total } = req.body || {};
       if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'items requeridos' });
       const folio = await nextFolio();
       const body = {
@@ -49,6 +49,7 @@ module.exports = async (req, res) => {
         cliente_nombre: cliente_nombre || null,
         items,
         subtotal: Number(subtotal) || 0,
+        descuento: Number(descuento) || 0,
         total: Number(total) || 0,
       };
       const r = await fetch(`${URL}/rest/v1/cotizaciones`, {
