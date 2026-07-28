@@ -40,7 +40,10 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const { cliente_id, cliente_nombre, items, subtotal, descuento, total } = req.body || {};
+      const {
+        cliente_id, cliente_nombre, items, subtotal, descuento,
+        total_sin_iva, requiere_factura, iva_tasa, iva, total,
+      } = req.body || {};
       if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'items requeridos' });
       const folio = await nextFolio();
       const body = {
@@ -50,12 +53,28 @@ module.exports = async (req, res) => {
         items,
         subtotal: Number(subtotal) || 0,
         descuento: Number(descuento) || 0,
+        total_sin_iva: Number(total_sin_iva) || 0,
+        requiere_factura: Boolean(requiere_factura),
+        iva_tasa: Number(iva_tasa) || 0,
+        iva: Number(iva) || 0,
         total: Number(total) || 0,
       };
-      const r = await fetch(`${URL}/rest/v1/cotizaciones`, {
+      let r = await fetch(`${URL}/rest/v1/cotizaciones`, {
         method: 'POST', headers: hdrs(), body: JSON.stringify(body),
       });
-      const data = await r.json();
+      let data = await r.json();
+      if (!r.ok && /total_sin_iva|requiere_factura|iva_tasa|iva/i.test(JSON.stringify(data))) {
+        const fallbackBody = { ...body };
+        delete fallbackBody.total_sin_iva;
+        delete fallbackBody.requiere_factura;
+        delete fallbackBody.iva_tasa;
+        delete fallbackBody.iva;
+        r = await fetch(`${URL}/rest/v1/cotizaciones`, {
+          method: 'POST', headers: hdrs(), body: JSON.stringify(fallbackBody),
+        });
+        data = await r.json();
+      }
+      if (!r.ok) return res.status(r.status).json(data);
       return res.json({ cotizacion: Array.isArray(data) ? data[0] : data });
     }
 

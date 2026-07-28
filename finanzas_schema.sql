@@ -9,6 +9,10 @@ create table if not exists cotizaciones (
   items          jsonb not null default '[]',
   subtotal       numeric not null default 0,
   descuento      numeric not null default 0,
+  total_sin_iva  numeric not null default 0,
+  requiere_factura boolean not null default false,
+  iva_tasa       numeric not null default 0,
+  iva            numeric not null default 0,
   total          numeric not null default 0,
   created_at     timestamptz default now()
 );

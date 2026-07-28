@@ -349,8 +349,20 @@ function cotCard(c){
   const descRow = Number(c.descuento) > 0
     ? `<div class="cot-totals-row"><span>Descuento</span><span>-${fmt$(c.descuento)}</span></div>`
     : '';
-  const subRow = Number(c.descuento) > 0
+  const iva = Number(c.iva) || 0;
+  const requiresInvoice = Boolean(c.requiere_factura) || iva > 0;
+  const base = Number(c.total_sin_iva) || Math.max(0, Number(c.subtotal||0) - Number(c.descuento||0));
+  const subRow = Number(c.descuento) > 0 || requiresInvoice
     ? `<div class="cot-totals-row"><span>Subtotal</span><span>${fmt$(c.subtotal)}</span></div>`
+    : '';
+  const ivaBaseRow = requiresInvoice
+    ? `<div class="cot-totals-row"><span>Base antes de IVA</span><span>${fmt$(base)}</span></div>`
+    : '';
+  const ivaRow = requiresInvoice
+    ? `<div class="cot-totals-row"><span>IVA 16%</span><span>${fmt$(iva)}</span></div>`
+    : '';
+  const invoicePill = requiresInvoice
+    ? '<span class="cot-pill">Factura con IVA</span>'
     : '';
 
   return `
@@ -384,11 +396,14 @@ function cotCard(c){
       <div class="cot-totals">
         ${subRow}
         ${descRow}
+        ${ivaBaseRow}
+        ${ivaRow}
         <div class="cot-totals-row"><span>Total</span><strong>${fmt$(c.total)}</strong></div>
       </div>
       <div class="cot-meta">
         <span class="cot-pill">${fmtFecha(c.created_at)}</span>
         <span class="cot-pill">${escHtml(c.folio||'')}</span>
+        ${invoicePill}
       </div>
     </div>
   </div>`;
