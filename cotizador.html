@@ -535,8 +535,9 @@ document.addEventListener('click', e=>{
 });
 
 // ── Items ─────────────────────────────────────────────────────
+let itemIdSeq = 0;
 function addItem(desc='', qty=1, price='') {
-  items.push({id:Date.now(), desc, qty, price});
+  items.push({id:'it'+(++itemIdSeq), desc, qty, price});
   renderItems();
   updateQ();
 }
@@ -555,12 +556,12 @@ function renderItems() {
   document.getElementById('items-list').innerHTML = items.map(it=>`
     <div class="item-row">
       <input type="text" value="${esc(it.desc)}" placeholder="Servicio..."
-        oninput="setItem(${it.id},'desc',this.value)">
+        oninput="setItem('${it.id}','desc',this.value)">
       <input type="number" value="${it.qty}" min="1"
-        oninput="setItem(${it.id},'qty',this.value)">
+        oninput="setItem('${it.id}','qty',this.value)">
       <input type="number" value="${it.price}" min="0" placeholder="0"
-        oninput="setItem(${it.id},'price',this.value)">
-      <button class="btn-del" onclick="removeItem(${it.id})">×</button>
+        oninput="setItem('${it.id}','price',this.value)">
+      <button class="btn-del" onclick="removeItem('${it.id}')">×</button>
     </div>`).join('');
 }
 
