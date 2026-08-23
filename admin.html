@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PUREZA Admin</title>
+<link rel="manifest" href="/manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -11,7 +12,7 @@
   --blue:#1a40d0;--blue-dark:#1e3a8a;--blue-mid:#2563eb;
   --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
   --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
-  --green:#16a34a;
+  --green:#16a34a;--teal:#0891b2;
 }
 html,body{
   font-family:var(--font);background:var(--bg);color:var(--text);
@@ -75,10 +76,12 @@ html,body{
 .card-icon.blue{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2)}
 .card-icon.green{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2)}
 .card-icon.purple{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2)}
+.card-icon.teal{background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.2)}
 .card-icon svg{width:26px;height:26px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .card-icon.blue svg{stroke:var(--blue-mid)}
 .card-icon.green svg{stroke:var(--green)}
 .card-icon.purple svg{stroke:#7c3aed}
+.card-icon.teal svg{stroke:var(--teal)}
 .card-title{font-size:20px;font-weight:900;letter-spacing:.01em}
 .card-desc{font-size:13px;color:var(--gray);line-height:1.6}
 .card-arrow{
@@ -88,6 +91,7 @@ html,body{
 .card.blue-card .card-arrow{color:var(--blue-mid)}
 .card.green-card .card-arrow{color:var(--green)}
 .card.purple-card .card-arrow{color:#7c3aed}
+.card.teal-card .card-arrow{color:var(--teal)}
 
 /* ── FOOTER ── */
 footer{
@@ -116,6 +120,15 @@ footer{
   <div class="brand-name">Panel de administración</div>
 
   <div class="cards">
+
+    <a href="/clientes.html" class="card teal-card">
+      <div class="card-icon teal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <div class="card-title">Clientes</div>
+      <div class="card-desc">Agenda de clientes: direcciones, notas, historial de servicios y recordatorios de renovación.</div>
+      <div class="card-arrow">Ver clientes →</div>
+    </a>
 
     <a href="/cotizador.html" class="card blue-card">
       <div class="card-icon blue">

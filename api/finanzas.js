@@ -38,7 +38,7 @@ async function getBalance() {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -47,14 +47,27 @@ module.exports = async (req, res) => {
   try {
     // ── Resumen ────────────────────────────────────────────────
     if (req.method === 'GET' && tipo === 'resumen') {
-      const [balance, sR, gR] = await Promise.all([
+      const [balance, sR, gR, mR] = await Promise.all([
         getBalance(),
         fetch(`${URL}/rest/v1/servicios_cobrados?order=created_at.desc&limit=15`, { headers: hdrs() }),
         fetch(`${URL}/rest/v1/pureza_gastos?order=created_at.desc&limit=15`, { headers: hdrs() }),
+        fetch(`${URL}/rest/v1/servicios_cobrados?select=metodo_pago,monto`, { headers: hdrs() }),
       ]);
-      const servicios = await sR.json();
-      const gastos    = await gR.json();
-      return res.json({ balance, servicios: servicios || [], gastos: gastos || [] });
+      const servicios   = await sR.json();
+      const gastos      = await gR.json();
+
+      const porMetodo = { efectivo: 0, transferencia: 0, facturado: 0, sin_clasificar: 0 };
+      if (mR.ok) {
+        const metodoRows = (await mR.json()) || [];
+        if (Array.isArray(metodoRows)) {
+          for (const row of metodoRows) {
+            const k = row.metodo_pago && porMetodo.hasOwnProperty(row.metodo_pago) ? row.metodo_pago : 'sin_clasificar';
+            porMetodo[k] += Number(row.monto);
+          }
+        }
+      }
+
+      return res.json({ balance, servicios: servicios || [], gastos: gastos || [], porMetodo });
     }
 
     // ── Ingresos ───────────────────────────────────────────────
@@ -68,8 +81,19 @@ module.exports = async (req, res) => {
         return res.json({ ingresos: (await r.json()) || [] });
       }
       if (req.method === 'POST') {
-        const { cotizacion_id, folio_cotizacion, cliente_id, cliente_nombre, descripcion, monto, fecha } = req.body || {};
+        const {
+          cotizacion_id, folio_cotizacion, cliente_id, cliente_nombre, descripcion, monto, fecha,
+          metodo_pago, renovacion_meses,
+        } = req.body || {};
         if (!monto) return res.status(400).json({ error: 'monto requerido' });
+        const fechaFinal = fecha || new Date().toISOString().split('T')[0];
+        const meses = renovacion_meses ? Number(renovacion_meses) : null;
+        let proxima_renovacion = null;
+        if (meses) {
+          const d = new Date(fechaFinal + 'T00:00:00');
+          d.setMonth(d.getMonth() + meses);
+          proxima_renovacion = d.toISOString().split('T')[0];
+        }
         const body = {
           cotizacion_id:    cotizacion_id || null,
           folio_cotizacion: folio_cotizacion || null,
@@ -81,18 +105,40 @@ module.exports = async (req, res) => {
           // Se manda null explícito: requiere la migración migracion_cuenta_unica.sql
           // (DROP NOT NULL) para no fallar el insert.
           cobrado_por: null,
-          fecha: fecha || new Date().toISOString().split('T')[0],
+          metodo_pago: metodo_pago || null,
+          renovacion_meses: meses,
+          proxima_renovacion,
+          fecha: fechaFinal,
         };
-        const r = await fetch(`${URL}/rest/v1/servicios_cobrados`, {
+        let r = await fetch(`${URL}/rest/v1/servicios_cobrados`, {
           method: 'POST', headers: hdrs(), body: JSON.stringify(body),
         });
-        const data = await r.json();
+        let data = await r.json();
+        if (!r.ok && /metodo_pago|renovacion_meses|proxima_renovacion/i.test(JSON.stringify(data))) {
+          const fallbackBody = { ...body };
+          delete fallbackBody.metodo_pago;
+          delete fallbackBody.renovacion_meses;
+          delete fallbackBody.proxima_renovacion;
+          r = await fetch(`${URL}/rest/v1/servicios_cobrados`, {
+            method: 'POST', headers: hdrs(), body: JSON.stringify(fallbackBody),
+          });
+          data = await r.json();
+        }
+        if (!r.ok) return res.status(r.status).json(data);
         return res.json({ ingreso: Array.isArray(data) ? data[0] : data });
       }
       if (req.method === 'DELETE') {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'id requerido' });
         await fetch(`${URL}/rest/v1/servicios_cobrados?id=eq.${id}`, { method: 'DELETE', headers: hdrs() });
+        return res.json({ ok: true });
+      }
+      if (req.method === 'PATCH') {
+        const { id } = req.query;
+        if (!id) return res.status(400).json({ error: 'id requerido' });
+        await fetch(`${URL}/rest/v1/servicios_cobrados?id=eq.${id}`, {
+          method: 'PATCH', headers: hdrs(), body: JSON.stringify({ renovacion_notificada: true }),
+        });
         return res.json({ ok: true });
       }
     }

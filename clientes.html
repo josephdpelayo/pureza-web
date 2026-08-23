@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clientes — PUREZA</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#1a40d0;--blue-mid:#2563eb;--purple:#7c3aed;--teal:#0891b2;--amber:#d97706;
+  --text:#0f172a;--gray:#64748b;--border:#e2e8f0;
+  --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
+  --green:#16a34a;--red:#dc2626;--red-bg:#fee2e2;
+}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LOCK ── */
+#lock{
+  position:fixed;inset:0;z-index:999;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;
+}
+.lock-logo{height:52px;margin-bottom:24px}
+.lock-title{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:18px}
+.lock-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px}
+.lock-input{
+  padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:15px;font-family:var(--font);text-align:center;letter-spacing:.12em;
+  color:var(--text);outline:none;transition:border-color .15s;
+}
+.lock-input:focus{border-color:var(--blue-mid)}
+.lock-btn{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;font-family:var(--font);cursor:pointer;
+}
+.lock-error{font-size:12px;font-weight:700;color:var(--red);text-align:center;display:none}
+
+/* ── APP ── */
+#app{display:none;max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+
+.page-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.page-head a.back{
+  display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+  color:var(--gray);text-decoration:none;letter-spacing:.04em;
+  padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;
+  transition:border-color .15s;
+}
+.page-head a.back:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+.page-head a.back svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.page-title{font-size:22px;font-weight:900;letter-spacing:.01em}
+.btn-nuevo{
+  margin-left:auto;background:var(--teal);color:var(--white);border:none;border-radius:8px;
+  padding:9px 16px;font-size:12px;font-weight:800;font-family:var(--font);cursor:pointer;
+  letter-spacing:.04em;transition:opacity .15s;
+}
+.btn-nuevo:hover{opacity:.85}
+
+/* ── NOTIFICACIONES ── */
+.notif-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--white);border:1.5px solid var(--border);border-radius:12px;
+  padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--gray);
+}
+.btn-notif{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:8px;
+  padding:8px 14px;font-size:12px;font-weight:800;font-family:var(--font);cursor:pointer;
+  white-space:nowrap;
+}
+.btn-notif:hover{background:#1430a0}
+.btn-notif:disabled{opacity:.5;cursor:default}
+
+/* ── RECORDATORIOS ── */
+.recordatorios{
+  background:var(--white);border:1.5px solid var(--border);border-radius:14px;
+  padding:16px;margin-bottom:20px;
+}
+.recordatorios-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.recordatorios-title{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}
+.recordatorios-badge{
+  background:rgba(220,38,38,.08);color:var(--red);font-size:11px;font-weight:800;
+  padding:2px 9px;border-radius:20px;
+}
+.rec-item{
+  display:flex;align-items:center;gap:10px;padding:9px 4px;border-top:1px solid var(--border);
+}
+.rec-item:first-of-type{border-top:none}
+.rec-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.rec-dot.vencido{background:var(--red)}
+.rec-dot.proximo{background:var(--amber)}
+.rec-info{flex:1;min-width:0}
+.rec-nombre{font-size:13px;font-weight:700}
+.rec-fecha{font-size:11px;color:var(--gray)}
+.rec-actions{display:flex;gap:6px;flex-shrink:0}
+.rec-wa{
+  display:flex;align-items:center;gap:5px;background:rgba(22,163,74,.1);color:var(--green);
+  text-decoration:none;font-size:11px;font-weight:700;padding:6px 10px;border-radius:6px;
+}
+.rec-ok{
+  background:none;border:1px solid var(--border);border-radius:6px;color:var(--gray);
+  font-size:11px;font-weight:700;padding:6px 10px;cursor:pointer;font-family:var(--font);
+}
+.rec-ok:hover{border-color:var(--green);color:var(--green)}
+.rec-empty{font-size:12px;color:var(--gray);padding:6px 4px}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+
+.list-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden}
+.list-search{padding:14px;border-bottom:1px solid var(--border)}
+.list-search input{
+  width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+}
+.list-search input:focus{border-color:var(--blue-mid)}
+.client-list{max-height:640px;overflow-y:auto}
+.client-row{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;
+}
+.client-row:last-child{border-bottom:none}
+.client-row:hover,.client-row.active{background:var(--bg)}
+.client-row-info{flex:1;min-width:0}
+.client-row-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.client-row-sub{font-size:11px;color:var(--gray);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.renov-badge{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.renov-badge.verde{background:var(--green)}
+.renov-badge.amber{background:var(--amber)}
+.renov-badge.rojo{background:var(--red)}
+
+.detail-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:20px}
+.detail-empty{text-align:center;padding:60px 20px;color:var(--gray);font-size:13px;font-weight:600}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
+.field input,.field textarea{
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:var(--font);color:var(--text);outline:none;
+  background:var(--white);transition:border-color .15s;
+}
+.field textarea{resize:vertical;min-height:60px}
+.field input:focus,.field textarea:focus{border-color:var(--blue-mid)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+
+.detail-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn-guardar{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:8px;
+  padding:10px 18px;font-size:12px;font-weight:800;font-family:var(--font);cursor:pointer;
+}
+.btn-guardar:hover{background:#1430a0}
+.btn-calc{
+  background:none;border:1.5px solid var(--border);border-radius:8px;
+  padding:10px 16px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;color:var(--text);
+}
+.btn-calc:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+.btn-eliminar{
+  margin-left:auto;background:none;border:1.5px solid var(--border);border-radius:8px;
+  padding:10px 16px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;color:var(--gray);
+}
+.btn-eliminar:hover{border-color:var(--red);color:var(--red)}
+#cd-traslado-result{font-size:12px;color:var(--gray);margin-top:6px}
+#cd-maps-link{font-size:12px;font-weight:700;color:var(--blue-mid);text-decoration:none;margin-top:4px;display:inline-block}
+
+.detail-section-head{
+  font-size:10px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gray);margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--border);
+}
+.hist-row{
+  display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);
+}
+.hist-row:last-child{border-bottom:none}
+.hist-info{flex:1;min-width:0}
+.hist-desc{font-size:12px;font-weight:700}
+.hist-meta{font-size:11px;color:var(--gray);margin-top:1px}
+.hist-amount{font-weight:800;font-size:13px;color:var(--green);white-space:nowrap}
+.pill{
+  display:inline-block;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:rgba(37,99,235,.08);color:var(--blue-mid);margin-left:6px;
+}
+.pill.rojo{background:rgba(220,38,38,.08);color:var(--red)}
+.pill.amber{background:rgba(217,119,6,.1);color:var(--amber)}
+.pill.verde{background:rgba(22,163,74,.1);color:var(--green)}
+
+.empty-state{text-align:center;padding:30px 20px;color:var(--gray);font-size:12px;font-weight:600}
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--text);color:var(--white);padding:11px 20px;border-radius:8px;
+  font-size:13px;font-weight:700;z-index:9999;transition:transform .3s;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.green{background:var(--green)}
+.toast.red{background:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <img src="/logo.png" alt="PUREZA" class="lock-logo">
+  <div class="lock-title">Acceso Admin</div>
+  <div class="lock-form">
+    <input type="password" id="pwd-input" class="lock-input" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter') checkPwd()">
+    <button class="lock-btn" onclick="checkPwd()">Entrar</button>
+    <div class="lock-error" id="pwd-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <div class="page-head">
+    <a href="/admin.html" class="back">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Admin
+    </a>
+    <div class="page-title">Clientes</div>
+    <button class="btn-nuevo" onclick="nuevoCliente()">+ Nuevo cliente</button>
+  </div>
+
+  <div class="notif-bar">
+    <span>🔔 Notificaciones de renovación</span>
+    <button class="btn-notif" id="btn-notif" onclick="habilitarNotificaciones()">Activar notificaciones</button>
+    <span style="flex-basis:100%;font-size:11px;color:var(--gray)">En iPhone solo llegan si antes agregas esta app a tu pantalla de inicio (Compartir → Agregar a inicio).</span>
+  </div>
+
+  <div class="recordatorios">
+    <div class="recordatorios-head">
+      <span class="recordatorios-title">Clientes a recordar</span>
+      <span class="recordatorios-badge" id="rec-badge" style="display:none"></span>
+    </div>
+    <div id="rec-list"><div class="rec-empty">Cargando…</div></div>
+  </div>
+
+  <div class="layout">
+    <div class="list-card">
+      <div class="list-search">
+        <input type="text" id="cli-search" placeholder="Buscar cliente…" oninput="filterClientes(this.value)">
+      </div>
+      <div class="client-list" id="clientes-list"><div class="empty-state">Cargando…</div></div>
+    </div>
+
+    <div class="detail-card" id="cliente-detail">
+      <div class="detail-empty" id="cd-empty">Selecciona un cliente de la lista, o crea uno nuevo.</div>
+
+      <div id="cd-form" style="display:none">
+        <input type="hidden" id="cd-id">
+        <div class="field">
+          <label>Nombre *</label>
+          <input type="text" id="cd-nombre" placeholder="Nombre del cliente">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Domicilio</label>
+            <input type="text" id="cd-domicilio" placeholder="Colonia o dirección">
+          </div>
+          <div class="field">
+            <label>Teléfono</label>
+            <input type="text" id="cd-telefono" placeholder="669 000 0000">
+          </div>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <textarea id="cd-notas" placeholder="Preferencias, referencias, detalles del servicio…"></textarea>
+        </div>
+
+        <button class="btn-calc" id="cd-calc-traslado" onclick="calcularTraslado()">📍 Ver en Google Maps</button>
+        <div id="cd-traslado-result"></div>
+
+        <div class="detail-actions">
+          <button class="btn-guardar" onclick="guardarCliente()">Guardar</button>
+          <button class="btn-eliminar" id="cd-eliminar" onclick="eliminarCliente()" style="display:none">Eliminar</button>
+        </div>
+
+        <div id="cd-historial-wrap" style="display:none">
+          <div class="detail-section-head">Cotizaciones</div>
+          <div id="cd-cotizaciones"><div class="empty-state">Sin cotizaciones.</div></div>
+          <div class="detail-section-head">Servicios cobrados</div>
+          <div id="cd-servicios"><div class="empty-state">Sin servicios registrados.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────────
+(function(){
+  const KEY='pureza-auth', PWD='Pureza2000';
+  window._checkPwd = function checkPwd(){
+    const val = document.getElementById('pwd-input').value;
+    if(val === PWD){
+      localStorage.setItem(KEY, PWD);
+      document.getElementById('lock').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      init();
+    } else {
+      document.getElementById('pwd-error').style.display = 'block';
+      document.getElementById('pwd-input').value = '';
+    }
+  };
+  if(localStorage.getItem(KEY) === PWD){
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } else {
+    document.getElementById('pwd-input').focus();
+  }
+})();
+function checkPwd(){ window._checkPwd(); }
+
+// ── Helpers ───────────────────────────────────────────────────
+const fmt = n => '$' + Math.round(Number(n)||0).toLocaleString('es-MX');
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function fmtDate(d){
+  if(!d) return '—';
+  const [y,m,day] = String(d).split('-');
+  if(!day) return d;
+  return `${day}/${m}/${y}`;
+}
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.className='toast', 2800);
+}
+
+// ── State ─────────────────────────────────────────────────────
+let clients = [];
+let selectedId = null;
+
+function init(){
+  loadClientes();
+  loadRecordatorios();
+}
+
+// ── Client list ───────────────────────────────────────────────
+async function loadClientes(){
+  try{
+    const r = await fetch('/api/clients');
+    const d = await r.json();
+    clients = d.clients || [];
+    renderClientesList(clients);
+  }catch(e){
+    document.getElementById('clientes-list').innerHTML = '<div class="empty-state">Error al cargar clientes.</div>';
+  }
+}
+
+function filterClientes(val){
+  const q = val.trim().toLowerCase();
+  const list = q ? clients.filter(c => (c.nombre||'').toLowerCase().includes(q) || (c.domicilio||'').toLowerCase().includes(q)) : clients;
+  renderClientesList(list);
+}
+
+function renderClientesList(list){
+  const el = document.getElementById('clientes-list');
+  if(!list.length){ el.innerHTML = '<div class="empty-state">Sin clientes registrados.</div>'; return; }
+  el.innerHTML = list.map(c => `
+    <div class="client-row${c.id===selectedId?' active':''}" onclick="abrirCliente('${c.id}')">
+      <div class="client-row-info">
+        <div class="client-row-name">${esc(c.nombre)}</div>
+        <div class="client-row-sub">${[c.domicilio,c.telefono].filter(Boolean).map(esc).join(' · ') || '—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function nuevoCliente(){
+  selectedId = null;
+  document.getElementById('cd-empty').style.display = 'none';
+  document.getElementById('cd-form').style.display = 'block';
+  document.getElementById('cd-id').value = '';
+  document.getElementById('cd-nombre').value = '';
+  document.getElementById('cd-domicilio').value = '';
+  document.getElementById('cd-telefono').value = '';
+  document.getElementById('cd-notas').value = '';
+  document.getElementById('cd-traslado-result').innerHTML = '';
+  document.getElementById('cd-eliminar').style.display = 'none';
+  document.getElementById('cd-historial-wrap').style.display = 'none';
+  document.getElementById('cd-nombre').focus();
+  renderClientesList(clients);
+}
+
+async function abrirCliente(id){
+  selectedId = id;
+  renderClientesList(clients);
+  document.getElementById('cd-empty').style.display = 'none';
+  document.getElementById('cd-form').style.display = 'block';
+  document.getElementById('cd-traslado-result').innerHTML = '';
+  document.getElementById('cd-eliminar').style.display = '';
+  document.getElementById('cd-historial-wrap').style.display = 'block';
+  document.getElementById('cd-cotizaciones').innerHTML = '<div class="empty-state">Cargando…</div>';
+  document.getElementById('cd-servicios').innerHTML = '<div class="empty-state">Cargando…</div>';
+  try{
+    const r = await fetch(`/api/clients?id=${id}&detalle=1`);
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    const c = d.client;
+    document.getElementById('cd-id').value = c.id;
+    document.getElementById('cd-nombre').value = c.nombre || '';
+    document.getElementById('cd-domicilio').value = c.domicilio || '';
+    document.getElementById('cd-telefono').value = c.telefono || '';
+    document.getElementById('cd-notas').value = c.notas || '';
+    renderHistorial(d.cotizaciones||[], d.servicios||[]);
+  }catch(e){
+    showToast('Error al cargar cliente', 'red');
+  }
+}
+
+function renderHistorial(cotizaciones, servicios){
+  const qEl = document.getElementById('cd-cotizaciones');
+  if(!cotizaciones.length){ qEl.innerHTML = '<div class="empty-state">Sin cotizaciones.</div>'; }
+  else {
+    qEl.innerHTML = cotizaciones.map(c => `
+      <div class="hist-row">
+        <div class="hist-info">
+          <div class="hist-desc">${esc(c.folio||'')}</div>
+          <div class="hist-meta">${fmtDate((c.created_at||'').split('T')[0])}</div>
+        </div>
+        <div class="hist-amount">${fmt(c.total)}</div>
+      </div>`).join('');
+  }
+
+  const sEl = document.getElementById('cd-servicios');
+  if(!servicios.length){ sEl.innerHTML = '<div class="empty-state">Sin servicios registrados.</div>'; }
+  else {
+    sEl.innerHTML = servicios.map(s => {
+      let renovPill = '';
+      if(s.renovacion_meses){
+        if(s.renovacion_notificada) renovPill = `<span class="pill verde">Renovado</span>`;
+        else {
+          const dias = (new Date(s.proxima_renovacion) - new Date()) / 86400000;
+          const cls = dias < 0 ? 'rojo' : (dias <= 30 ? 'amber' : '');
+          renovPill = `<span class="pill${cls?' '+cls:''}">Renueva ${fmtDate(s.proxima_renovacion)}</span>`;
+        }
+      }
+      return `
+      <div class="hist-row">
+        <div class="hist-info">
+          <div class="hist-desc">${esc(s.descripcion||'Servicio cobrado')}${renovPill}</div>
+          <div class="hist-meta">${fmtDate(s.fecha)}${s.metodo_pago?' · '+esc(s.metodo_pago):''}</div>
+        </div>
+        <div class="hist-amount">${fmt(s.monto)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+async function guardarCliente(){
+  const nombre = document.getElementById('cd-nombre').value.trim();
+  if(!nombre) return showToast('El nombre es obligatorio', 'red');
+  const body = {
+    id: document.getElementById('cd-id').value || undefined,
+    nombre,
+    domicilio: document.getElementById('cd-domicilio').value.trim() || null,
+    telefono: document.getElementById('cd-telefono').value.trim() || null,
+    notas: document.getElementById('cd-notas').value.trim() || null,
+  };
+  try{
+    const r = await fetch('/api/clients', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    selectedId = d.client.id;
+    document.getElementById('cd-id').value = d.client.id;
+    showToast('Cliente guardado ✓', 'green');
+    await loadClientes();
+    renderClientesList(clients);
+  }catch(e){
+    showToast('Error al guardar', 'red');
+  }
+}
+
+async function eliminarCliente(){
+  const id = document.getElementById('cd-id').value;
+  if(!id) return;
+  if(!confirm('¿Eliminar este cliente?')) return;
+  try{
+    await fetch('/api/clients?id='+id, { method:'DELETE' });
+    showToast('Cliente eliminado');
+    selectedId = null;
+    document.getElementById('cd-form').style.display = 'none';
+    document.getElementById('cd-empty').style.display = 'block';
+    loadClientes();
+  }catch(e){
+    showToast('Error al eliminar', 'red');
+  }
+}
+
+function calcularTraslado(){
+  const dom = document.getElementById('cd-domicilio').value.trim();
+  if(!dom) return showToast('Ingresa el domicilio primero', 'red');
+  const url = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dom);
+  window.open(url, '_blank');
+}
+
+// ── Recordatorios ─────────────────────────────────────────────
+async function loadRecordatorios(){
+  try{
+    const r = await fetch('/api/clients?recordatorios=1');
+    const d = await r.json();
+    renderRecordatorios(d.recordatorios || []);
+  }catch(e){
+    document.getElementById('rec-list').innerHTML = '<div class="rec-empty">Error al cargar recordatorios.</div>';
+  }
+}
+
+function renderRecordatorios(list){
+  const hoy = new Date();
+  const pendientes = list.filter(r => !r.renovacion_notificada && r.proxima_renovacion).map(r => ({
+    ...r, dias: (new Date(r.proxima_renovacion) - hoy) / 86400000,
+  })).filter(r => r.dias <= 30).sort((a,b) => a.dias - b.dias);
+
+  const badge = document.getElementById('rec-badge');
+  const vencidos = pendientes.filter(r => r.dias < 0).length;
+  badge.style.display = vencidos ? '' : 'none';
+  badge.textContent = vencidos + ' vencido' + (vencidos!==1?'s':'');
+
+  const el = document.getElementById('rec-list');
+  if(!pendientes.length){ el.innerHTML = '<div class="rec-empty">Sin recordatorios pendientes.</div>'; return; }
+
+  el.innerHTML = pendientes.map(r => {
+    const mensaje = encodeURIComponent(`Hola ${r.cliente_nombre||''}, te escribimos de Pureza para recordarte que es buen momento de renovar tu servicio${r.descripcion?' de '+r.descripcion:''}. ¿Te gustaría agendar?`);
+    const waLink = r.telefono
+      ? `<a class="rec-wa" href="https://wa.me/52${r.telefono.replace(/\D/g,'')}?text=${mensaje}" target="_blank" rel="noopener">WhatsApp</a>`
+      : '';
+    return `
+    <div class="rec-item">
+      <div class="rec-dot ${r.dias<0?'vencido':'proximo'}"></div>
+      <div class="rec-info">
+        <div class="rec-nombre">${esc(r.cliente_nombre||'Cliente sin nombre')}</div>
+        <div class="rec-fecha">${r.dias<0?'Venció':'Vence'} ${fmtDate(r.proxima_renovacion)}${r.descripcion?' · '+esc(r.descripcion):''}</div>
+      </div>
+      <div class="rec-actions">
+        ${waLink}
+        <button class="rec-ok" onclick="marcarRecordado('${r.id}')">Ya recordé</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function marcarRecordado(id){
+  try{
+    await fetch('/api/finanzas?tipo=ingresos&id='+id, { method:'PATCH' });
+    showToast('Marcado ✓', 'green');
+    loadRecordatorios();
+  }catch(e){
+    showToast('Error', 'red');
+  }
+}
+
+// ── Notificaciones push ─────────────────────────────────────────
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function habilitarNotificaciones(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    return showToast('Este navegador no soporta notificaciones push', 'red');
+  }
+  const btn = document.getElementById('btn-notif');
+  btn.disabled = true;
+  try{
+    const reg = await navigator.serviceWorker.register('/service-worker.js');
+    const perm = await Notification.requestPermission();
+    if(perm !== 'granted'){ showToast('Permiso de notificaciones denegado', 'red'); btn.disabled=false; return; }
+    const keyR = await fetch('/api/vapid-public-key');
+    const keyD = await keyR.json();
+    if(!keyD.key){ showToast('Notificaciones aún no configuradas', 'red'); btn.disabled=false; return; }
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(keyD.key),
+    });
+    await fetch('/api/push-subscribe', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(sub.toJSON()),
+    });
+    showToast('Notificaciones activadas ✓', 'green');
+    btn.textContent = 'Notificaciones activas';
+  }catch(e){
+    showToast('No se pudo activar', 'red');
+    btn.disabled = false;
+  }
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+</script>
+</body>
+</html>

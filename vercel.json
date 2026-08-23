@@ -1,3 +1,6 @@
 {
-  "cleanUrls": false
+  "cleanUrls": false,
+  "crons": [
+    { "path": "/api/cron/recordatorios", "schedule": "0 15 * * *" }
+  ]
 }

@@ -1,0 +1,12 @@
+{
+  "name": "Pureza Admin",
+  "short_name": "Pureza",
+  "start_url": "/admin.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1a40d0",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

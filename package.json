@@ -1,4 +1,7 @@
 {
   "name": "pureza-web",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
 }

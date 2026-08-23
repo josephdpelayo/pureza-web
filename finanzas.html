@@ -115,6 +115,39 @@ main{padding-top:56px;min-height:100vh}
 .seg-btn.sel-jeebe{border-color:var(--purple);background:rgba(124,58,237,.08);color:var(--purple)}
 .seg-btn.sel-banco{border-color:var(--teal);background:rgba(8,145,178,.08);color:var(--teal)}
 .seg-btn.sel-active{border-color:var(--blue-mid);background:rgba(37,99,235,.08);color:var(--blue-mid)}
+.seg-btn.sel-efectivo,.seg-btn.sel-transferencia,.seg-btn.sel-facturado,
+.seg-btn.sel-ninguna,.seg-btn.sel-3,.seg-btn.sel-5,.seg-btn.sel-6,.seg-btn.sel-12,.seg-btn.sel-custom{
+  border-color:var(--blue-mid);background:rgba(37,99,235,.08);color:var(--blue-mid);
+}
+
+/* ── RUTA / GASOLINA ── */
+.ruta-toggle{
+  display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px dashed var(--border);
+  border-radius:8px;padding:9px 14px;font-size:12px;font-weight:700;font-family:var(--font);
+  color:var(--gray);cursor:pointer;width:100%;justify-content:center;transition:all .15s;margin-bottom:12px;
+}
+.ruta-toggle:hover{border-color:var(--blue-mid);color:var(--blue-mid)}
+.ruta-panel{display:none;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px}
+.ruta-panel.show{display:block}
+.ruta-parada-row{display:flex;gap:6px;margin-bottom:6px}
+.ruta-parada-row input{
+  flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+  font-size:12px;font-family:var(--font);color:var(--text);outline:none;
+}
+.ruta-parada-row input:focus{border-color:var(--blue-mid)}
+.ruta-parada-row button{
+  width:30px;flex-shrink:0;background:none;border:1px solid var(--border);border-radius:7px;
+  color:var(--gray);cursor:pointer;font-size:14px;
+}
+.ruta-parada-row button:hover{border-color:var(--red);color:var(--red)}
+.ruta-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.ruta-add,.ruta-calc,.ruta-usar{
+  padding:8px 12px;border-radius:7px;font-size:11px;font-weight:700;font-family:var(--font);
+  cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text);
+}
+.ruta-calc{border-color:var(--blue-mid);color:var(--blue-mid)}
+.ruta-usar{border-color:var(--green);color:var(--green);display:none}
+.ruta-result{font-size:12px;font-weight:700;color:var(--text);margin-top:8px}
 
 /* ── SUBMIT ── */
 .btn-submit{
@@ -385,6 +418,21 @@ main{padding-top:56px;min-height:100vh}
       <div class="bc-sub">Cuenta de ahorro</div>
     </div>
   </div>
+  <div class="section-head">Ingresos por método de pago</div>
+  <div class="balance-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="balance-card">
+      <div class="bc-label">Efectivo</div>
+      <div class="bc-amount" id="bal-efectivo" style="color:var(--blue-mid)">…</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Transferencia</div>
+      <div class="bc-amount" id="bal-transferencia" style="color:var(--purple)">…</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Facturado</div>
+      <div class="bc-amount" id="bal-facturado" style="color:var(--teal)">…</div>
+    </div>
+  </div>
   <div class="section-head">Actividad reciente</div>
   <div class="activity-list" id="activity-list">
     <div class="empty-state">Cargando…</div>
@@ -404,9 +452,12 @@ main{padding-top:56px;min-height:100vh}
         <input type="hidden" id="ing-cot-id">
         <input type="hidden" id="ing-cot-folio">
       </div>
-      <div class="field">
+      <div class="field cs-wrap" id="ing-cliente-wrap">
         <label>Cliente (opcional)</label>
-        <input type="text" id="ing-cliente" placeholder="Nombre del cliente">
+        <input type="text" id="ing-cliente" placeholder="Nombre del cliente" autocomplete="off"
+          oninput="searchIngClientes(this.value)" onfocus="openIngClienteDrop()">
+        <div class="cs-drop" id="ing-cliente-drop"></div>
+        <input type="hidden" id="ing-cliente-id">
       </div>
       <div class="field">
         <label>Descripción</label>
@@ -415,6 +466,28 @@ main{padding-top:56px;min-height:100vh}
       <div class="field">
         <label>Monto *</label>
         <input type="number" id="ing-monto" placeholder="0" min="0" step="1">
+      </div>
+      <div class="field">
+        <label>Método de pago</label>
+        <div class="seg-ctrl" id="seg-metodo">
+          <button class="seg-btn" onclick="selSeg('metodo','efectivo',this)">Efectivo</button>
+          <button class="seg-btn" onclick="selSeg('metodo','transferencia',this)">Transferencia</button>
+          <button class="seg-btn" onclick="selSeg('metodo','facturado',this)">Facturado</button>
+        </div>
+        <input type="hidden" id="val-metodo">
+      </div>
+      <div class="field">
+        <label>Renovación</label>
+        <div class="seg-ctrl" id="seg-renovacion" style="flex-wrap:wrap">
+          <button class="seg-btn sel-ninguna" onclick="selRenovacion('ninguna',this)">Sin renovación</button>
+          <button class="seg-btn" onclick="selRenovacion('3',this)">3 meses</button>
+          <button class="seg-btn" onclick="selRenovacion('5',this)">5 meses</button>
+          <button class="seg-btn" onclick="selRenovacion('6',this)">6 meses</button>
+          <button class="seg-btn" onclick="selRenovacion('12',this)">12 meses</button>
+          <button class="seg-btn" onclick="selRenovacion('custom',this)">Personalizado</button>
+        </div>
+        <input type="hidden" id="val-renovacion" value="ninguna">
+        <input type="number" id="renovacion-custom" placeholder="Meses" min="1" style="display:none;margin-top:6px">
       </div>
       <div class="field">
         <label>Fecha *</label>
@@ -445,6 +518,16 @@ main{padding-top:56px;min-height:100vh}
   <div class="two-panel">
     <div class="form-card">
       <div class="fc-title">Registrar gasto</div>
+      <button type="button" class="ruta-toggle" onclick="toggleRuta()">🚗 Calcular ruta del día</button>
+      <div class="ruta-panel" id="ruta-panel">
+        <div id="ruta-paradas"></div>
+        <div class="ruta-actions">
+          <button type="button" class="ruta-add" onclick="agregarParada()">+ Parada</button>
+          <button type="button" class="ruta-calc" onclick="calcularRuta()">Calcular</button>
+          <button type="button" class="ruta-usar" id="ruta-usar-btn" onclick="usarRutaEnGasto()">Usar este monto</button>
+        </div>
+        <div class="ruta-result" id="ruta-result"></div>
+      </div>
       <div class="field">
         <label>Tipo *</label>
         <div class="seg-ctrl" id="seg-tipo" style="flex-wrap:wrap">
@@ -635,7 +718,7 @@ function showTab(id, btn){
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='resumen')  loadResumen();
-  if(id==='ingresos') { loadIngresos(); loadCotizaciones(); }
+  if(id==='ingresos') { loadIngresos(); loadCotizaciones(); loadClientesFin(); }
   if(id==='gastos')   loadGastos();
   if(id==='corte')    loadCorteHist();
 }
@@ -646,6 +729,44 @@ function selSeg(group, val, btn){
     .forEach(b=>b.className='seg-btn');
   btn.className = 'seg-btn sel-'+val;
   document.getElementById('val-'+group).value = val;
+}
+
+function selRenovacion(val, btn){
+  selSeg('renovacion', val, btn);
+  document.getElementById('renovacion-custom').style.display = val==='custom' ? '' : 'none';
+}
+
+// ── Clientes (autocomplete para Ingresos) ───────────────────────
+let clientesFin = [];
+async function loadClientesFin(){
+  try{
+    const r = await fetch('/api/clients');
+    const d = await r.json();
+    clientesFin = d.clients || [];
+  }catch(e){ clientesFin = []; }
+}
+
+function openIngClienteDrop(){ searchIngClientes(document.getElementById('ing-cliente').value); }
+
+function searchIngClientes(val){
+  const drop = document.getElementById('ing-cliente-drop');
+  const q = val.trim().toLowerCase();
+  document.getElementById('ing-cliente-id').value = '';
+  const list = q ? clientesFin.filter(c=>c.nombre.toLowerCase().includes(q)) : clientesFin.slice(0,8);
+  if(!list.length){ drop.style.display='none'; return; }
+  drop.innerHTML = list.map(c=>`
+    <div class="cs-item" onclick="selectIngCliente('${esc(c.id)}')">
+      <div class="cs-item-folio">${esc(c.nombre)}</div>
+      <div class="cs-item-sub">${[c.domicilio,c.telefono].filter(Boolean).map(esc).join(' · ')}</div>
+    </div>`).join('');
+  drop.style.display = 'block';
+}
+
+function selectIngCliente(id){
+  const c = clientesFin.find(x=>x.id===id); if(!c) return;
+  document.getElementById('ing-cliente').value = c.nombre;
+  document.getElementById('ing-cliente-id').value = c.id;
+  document.getElementById('ing-cliente-drop').style.display = 'none';
 }
 
 // ── Init dates ────────────────────────────────────────────────
@@ -667,6 +788,11 @@ async function loadResumen(){
     const b = d.balance||{};
     document.getElementById('bal-caja').textContent   = fmt(b.caja||0);
     document.getElementById('bal-ahorro').textContent = fmt(b.ahorro||0);
+
+    const pm = d.porMetodo || {};
+    document.getElementById('bal-efectivo').textContent      = fmt(pm.efectivo||0);
+    document.getElementById('bal-transferencia').textContent = fmt(pm.transferencia||0);
+    document.getElementById('bal-facturado').textContent     = fmt(pm.facturado||0);
 
     const items = [
       ...(d.servicios||[]).map(s=>({...s,_t:'ingreso'})),
@@ -739,6 +865,7 @@ function selectCotizacion(id){
   document.getElementById('ing-cot-id').value    = c.id;
   document.getElementById('ing-cot-folio').value = c.folio;
   if(c.cliente_nombre) document.getElementById('ing-cliente').value = c.cliente_nombre;
+  if(c.cliente_id) document.getElementById('ing-cliente-id').value = c.cliente_id;
   if(c.total) document.getElementById('ing-monto').value = Math.round(c.total);
   document.getElementById('cot-drop').style.display='none';
 }
@@ -788,12 +915,20 @@ async function saveIngreso(){
   const monto = parseFloat(document.getElementById('ing-monto').value);
   if(!monto||monto<=0) return showToast('Ingresa un monto válido','red');
 
+  const renovacionVal = document.getElementById('val-renovacion').value;
+  const renovacion_meses = renovacionVal==='custom'
+    ? (parseInt(document.getElementById('renovacion-custom').value)||null)
+    : (renovacionVal && renovacionVal!=='ninguna' ? parseInt(renovacionVal) : null);
+
   const body={
     cotizacion_id:   document.getElementById('ing-cot-id').value||null,
     folio_cotizacion:document.getElementById('ing-cot-folio').value||null,
+    cliente_id:      document.getElementById('ing-cliente-id').value||null,
     cliente_nombre:  document.getElementById('ing-cliente').value.trim()||null,
     descripcion:     document.getElementById('ing-desc').value.trim()||null,
     monto,
+    metodo_pago: document.getElementById('val-metodo').value||null,
+    renovacion_meses,
     fecha: document.getElementById('ing-fecha').value||today(),
   };
   try{
@@ -802,9 +937,14 @@ async function saveIngreso(){
     });
     if(!r.ok) throw new Error();
     showToast('Ingreso registrado ✓','green');
-    ['ing-cot-search','ing-cot-id','ing-cot-folio','ing-cliente','ing-desc','ing-monto']
+    ['ing-cot-search','ing-cot-id','ing-cot-folio','ing-cliente','ing-cliente-id','ing-desc','ing-monto','renovacion-custom']
       .forEach(id=>document.getElementById(id).value='');
     document.getElementById('ing-fecha').value=today();
+    document.getElementById('seg-metodo').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    document.getElementById('val-metodo').value='';
+    document.getElementById('seg-renovacion').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    document.getElementById('seg-renovacion').querySelector('.seg-btn').className='seg-btn sel-ninguna';
+    document.getElementById('val-renovacion').value='ninguna';
     loadIngresos(); loadResumen();
   }catch(e){ showToast('Error al guardar','red'); }
 }
@@ -814,6 +954,73 @@ async function delIngreso(id){
   await fetch('/api/finanzas?tipo=ingresos&id='+id,{method:'DELETE'});
   showToast('Eliminado');
   loadIngresos(); loadResumen();
+}
+
+// ── RUTA / GASOLINA ──────────────────────────────────────────
+let paradas = [];
+let rutaCalculada = null;
+
+function toggleRuta(){
+  const panel = document.getElementById('ruta-panel');
+  const show = !panel.classList.contains('show');
+  panel.classList.toggle('show', show);
+  if(show && !paradas.length){ paradas = ['']; renderParadas(); }
+}
+
+function agregarParada(){
+  paradas.push('');
+  renderParadas();
+}
+
+function quitarParada(idx){
+  paradas.splice(idx,1);
+  renderParadas();
+}
+
+function setParada(idx, val){
+  paradas[idx] = val;
+}
+
+function renderParadas(){
+  document.getElementById('ruta-paradas').innerHTML = paradas.map((p,idx)=>`
+    <div class="ruta-parada-row">
+      <input type="text" value="${esc(p)}" placeholder="Parada ${idx+1} (cliente o dirección)"
+        oninput="setParada(${idx},this.value)">
+      <button type="button" onclick="quitarParada(${idx})">×</button>
+    </div>`).join('');
+  document.getElementById('ruta-usar-btn').style.display = 'none';
+  document.getElementById('ruta-result').textContent = '';
+  rutaCalculada = null;
+}
+
+async function calcularRuta(){
+  const stops = paradas.map(p=>p.trim()).filter(Boolean);
+  if(!stops.length) return showToast('Agrega al menos una parada', 'red');
+  const resultEl = document.getElementById('ruta-result');
+  resultEl.textContent = 'Calculando…';
+  try{
+    const r = await fetch('/api/recorrido', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ paradas: stops }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    rutaCalculada = { km: d.km, costo: d.costo, stops };
+    resultEl.textContent = `${d.km} km × $${d.tarifa_km}/km = ${fmt(d.costo)}`;
+    document.getElementById('ruta-usar-btn').style.display = '';
+  }catch(e){
+    resultEl.textContent = '';
+    showToast('No se pudo calcular la ruta', 'red');
+  }
+}
+
+function usarRutaEnGasto(){
+  if(!rutaCalculada) return;
+  document.getElementById('seg-tipo').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+  document.getElementById('seg-tipo').querySelector('.seg-btn').className = 'seg-btn sel-active';
+  document.getElementById('val-tipo').value = 'gasolina';
+  document.getElementById('gasto-monto').value = rutaCalculada.costo;
+  document.getElementById('gasto-desc').value = 'Sonterra → RP → ' + rutaCalculada.stops.join(' → ') + ' → RP → Sonterra';
+  showToast('Monto listo, revisa y guarda el gasto', 'green');
 }
 
 // ── GASTOS ────────────────────────────────────────────────────
@@ -1097,6 +1304,7 @@ async function loadCorteHist(){
 // ── Init ──────────────────────────────────────────────────────
 loadResumen();
 loadCotizaciones();
+loadClientesFin();
 </script>
 </body>
 </html>
