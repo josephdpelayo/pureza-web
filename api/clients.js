@@ -1,3 +1,5 @@
+const { requireAuth } = require('./_auth');
+
 const URL  = process.env.SUPABASE_URL;
 const KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const hdrs = () => ({
@@ -12,6 +14,7 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if(req.method === 'OPTIONS') return res.status(200).end();
+  if(!requireAuth(req, res)) return;
 
   try {
     if(req.method === 'GET') {

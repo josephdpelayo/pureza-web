@@ -6,6 +6,7 @@
 <title>PUREZA Admin</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icon-180.png">
+<script src="https://accounts.google.com/gsi/client" async></script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Pureza">
@@ -111,7 +112,10 @@ footer{
 <div id="lock">
   <img src="/logo.png" alt="PUREZA" class="lock-logo">
   <div class="lock-title">Acceso Admin</div>
-  <div class="lock-form">
+  <div id="google-btn-wrap" style="display:none">
+    <div id="google-btn"></div>
+  </div>
+  <div class="lock-form" id="lock-form">
     <input type="password" id="pwd-input" class="lock-input" placeholder="Contraseña"
       onkeydown="if(event.key==='Enter') checkPwd()">
     <button class="lock-btn" onclick="checkPwd()">Entrar</button>
@@ -200,8 +204,53 @@ function unlock(){
   document.getElementById('footer').style.display = 'block';
 }
 
-if(localStorage.getItem(KEY) === PWD) unlock();
-else document.getElementById('pwd-input').focus();
+function waitForGoogleGSI(timeoutMs){
+  return new Promise(resolve=>{
+    const start = Date.now();
+    (function poll(){
+      if(window.google && window.google.accounts && window.google.accounts.id) return resolve(true);
+      if(Date.now()-start > timeoutMs) return resolve(false);
+      setTimeout(poll, 50);
+    })();
+  });
+}
+
+async function handleGoogleCredential(resp){
+  try{
+    const r = await fetch('/api/auth-google', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ credential: resp.credential }),
+    });
+    if(r.ok){ unlock(); return; }
+    const d = await r.json().catch(()=>({}));
+    document.getElementById('pwd-error').textContent = d.error || 'No se pudo iniciar sesión';
+    document.getElementById('pwd-error').style.display = 'block';
+  }catch(e){
+    document.getElementById('pwd-error').textContent = 'Error de conexión';
+    document.getElementById('pwd-error').style.display = 'block';
+  }
+}
+
+(async function initAuth(){
+  try{
+    const chk = await fetch('/api/auth-check');
+    const d = await chk.json();
+    if(d.configured){
+      if(d.authenticated) return unlock();
+      const idR = await fetch('/api/auth-client-id');
+      const idD = await idR.json();
+      if(idD.clientId && await waitForGoogleGSI(4000)){
+        document.getElementById('lock-form').style.display = 'none';
+        document.getElementById('google-btn-wrap').style.display = 'block';
+        google.accounts.id.initialize({ client_id: idD.clientId, callback: handleGoogleCredential });
+        google.accounts.id.renderButton(document.getElementById('google-btn'), { theme:'filled_blue', size:'large', shape:'pill' });
+        return;
+      }
+    }
+  }catch(e){}
+  if(localStorage.getItem(KEY) === PWD) unlock();
+  else document.getElementById('pwd-input').focus();
+})();
 </script>
 </body>
 </html>

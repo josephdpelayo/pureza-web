@@ -2,6 +2,7 @@
   "name": "pureza-web",
   "version": "1.0.0",
   "dependencies": {
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "google-auth-library": "^9.14.1"
   }
 }

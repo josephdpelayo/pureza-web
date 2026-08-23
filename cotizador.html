@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cotizador — PUREZA</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -13,6 +14,29 @@
   --bg:#f8fafc;--white:#fff;--font:'Montserrat',sans-serif;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── LOCK SCREEN ── */
+#lock{
+  position:fixed;inset:0;z-index:999;background:var(--white);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.lock-logo{height:56px;width:auto;margin-bottom:28px}
+.lock-title{font-size:13px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);margin-bottom:20px}
+.lock-form{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+.lock-input{
+  padding:13px 16px;border:1.5px solid var(--border);border-radius:10px;
+  font-size:15px;font-family:var(--font);color:var(--text);outline:none;
+  text-align:center;letter-spacing:.12em;transition:border-color .15s;
+}
+.lock-input:focus{border-color:var(--blue-mid)}
+.lock-btn{
+  background:var(--blue-mid);color:var(--white);border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:800;font-family:var(--font);
+  cursor:pointer;letter-spacing:.06em;transition:background .15s;
+}
+.lock-btn:hover{background:#1430a0}
+.lock-error{font-size:12px;font-weight:700;color:#dc2626;text-align:center;display:none}
 
 /* ── LAYOUT ── */
 #layout{display:flex;min-height:100vh}
@@ -303,7 +327,22 @@ table.qt tbody td:not(:first-child){text-align:center}
 </style>
 </head>
 <body>
-<div id="layout">
+
+<div id="lock">
+  <img src="/logo.png" alt="PUREZA" class="lock-logo">
+  <div class="lock-title">Acceso Admin</div>
+  <div id="google-btn-wrap" style="display:none">
+    <div id="google-btn"></div>
+  </div>
+  <div class="lock-form" id="lock-form">
+    <input type="password" id="pwd-input" class="lock-input" placeholder="Contraseña"
+      onkeydown="if(event.key==='Enter') checkPwd()">
+    <button class="lock-btn" onclick="checkPwd()">Entrar</button>
+    <div class="lock-error" id="pwd-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="layout" style="display:none">
 
 <!-- ══ FORM PANEL ══════════════════════════════════════════════ -->
 <div id="form-panel">
@@ -463,13 +502,71 @@ table.qt tbody td:not(:first-child){text-align:center}
 </div><!-- /layout -->
 <script>
 // ── Auth ──────────────────────────────────────────────────────
-(function(){
-  const KEY='pureza-auth', PWD='Pureza2000';
-  if(localStorage.getItem(KEY)!==PWD){
-    const input=prompt('Contraseña:');
-    if(input!==PWD){document.body.innerHTML='';location.href='/';}
-    else localStorage.setItem(KEY,PWD);
+const AUTH_KEY = 'pureza-auth', AUTH_PWD = 'Pureza2000';
+
+function unlock(){
+  document.getElementById('lock').style.display = 'none';
+  document.getElementById('layout').style.display = 'flex';
+  loadClients();
+}
+
+function checkPwd(){
+  const val = document.getElementById('pwd-input').value;
+  if(val === AUTH_PWD){
+    localStorage.setItem(AUTH_KEY, AUTH_PWD);
+    unlock();
+  } else {
+    document.getElementById('pwd-error').style.display = 'block';
+    document.getElementById('pwd-input').value = '';
   }
+}
+
+function waitForGoogleGSI(timeoutMs){
+  return new Promise(resolve=>{
+    const start = Date.now();
+    (function poll(){
+      if(window.google && window.google.accounts && window.google.accounts.id) return resolve(true);
+      if(Date.now()-start > timeoutMs) return resolve(false);
+      setTimeout(poll, 50);
+    })();
+  });
+}
+
+async function handleGoogleCredential(resp){
+  try{
+    const r = await fetch('/api/auth-google', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ credential: resp.credential }),
+    });
+    if(r.ok){ unlock(); return; }
+    const d = await r.json().catch(()=>({}));
+    document.getElementById('pwd-error').textContent = d.error || 'No se pudo iniciar sesión';
+    document.getElementById('pwd-error').style.display = 'block';
+  }catch(e){
+    document.getElementById('pwd-error').textContent = 'Error de conexión';
+    document.getElementById('pwd-error').style.display = 'block';
+  }
+}
+
+(async function initAuth(){
+  try{
+    const chk = await fetch('/api/auth-check');
+    const d = await chk.json();
+    if(d.configured){
+      if(d.authenticated) return unlock();
+      const idR = await fetch('/api/auth-client-id');
+      const idD = await idR.json();
+      if(idD.clientId && await waitForGoogleGSI(4000)){
+        document.getElementById('lock-form').style.display = 'none';
+        document.getElementById('google-btn-wrap').style.display = 'block';
+        google.accounts.id.initialize({ client_id: idD.clientId, callback: handleGoogleCredential });
+        google.accounts.id.renderButton(document.getElementById('google-btn'), { theme:'filled_blue', size:'large', shape:'pill' });
+        return;
+      }
+    }
+  }catch(e){}
+  if(localStorage.getItem(AUTH_KEY) === AUTH_PWD) unlock();
+  else document.getElementById('pwd-input').focus();
 })();
 
 // ── State ─────────────────────────────────────────────────────

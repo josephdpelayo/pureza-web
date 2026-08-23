@@ -1,3 +1,5 @@
+const { requireAuth } = require('./_auth');
+
 const GOOGLE_KEY = process.env.GOOGLE_MAPS_API_KEY;
 const SONTERRA    = process.env.ORIGEN_SONTERRA;
 const REAL_PACIFICO = process.env.ORIGEN_REAL_PACIFICO;
@@ -8,6 +10,7 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (!requireAuth(req, res)) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
   try {
