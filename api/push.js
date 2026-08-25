@@ -9,14 +9,22 @@ const hdrs = () => ({
   Prefer: 'return=representation',
 });
 
+// Un solo endpoint para push (Vercel Hobby limita a 12 funciones):
+//   GET    /api/push?action=vapid-key  → llave pública VAPID
+//   POST   /api/push                   → registra/actualiza una suscripción
+//   DELETE /api/push?endpoint=...      → desactiva una suscripción
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!requireAuth(req, res)) return;
 
   try {
+    if (req.method === 'GET' && req.query?.action === 'vapid-key') {
+      return res.json({ key: process.env.VAPID_PUBLIC_KEY || null });
+    }
+
     if (req.method === 'POST') {
       const { endpoint, keys } = req.body || {};
       if (!endpoint || !keys || !keys.p256dh || !keys.auth) {

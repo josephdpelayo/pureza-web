@@ -256,7 +256,7 @@ function waitForGoogleGSI(timeoutMs){
 
 async function handleGoogleCredential(resp){
   try{
-    const r = await fetch('/api/auth-google', {
+    const r = await fetch('/api/auth?action=google', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ credential: resp.credential }),
     });
@@ -272,11 +272,11 @@ async function handleGoogleCredential(resp){
 
 (async function initAuth(){
   try{
-    const chk = await fetch('/api/auth-check');
+    const chk = await fetch('/api/auth?action=check');
     const d = await chk.json();
     if(d.configured){
       if(d.authenticated) return unlock();
-      const idR = await fetch('/api/auth-client-id');
+      const idR = await fetch('/api/auth?action=client-id');
       const idD = await idR.json();
       if(idD.clientId && await waitForGoogleGSI(4000)){
         document.getElementById('lock-form').style.display = 'none';
