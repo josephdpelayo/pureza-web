@@ -449,6 +449,7 @@ main{padding-top:56px;min-height:100vh}
     <div class="field"><label>Desde</label><input type="date" id="exp-fi"></div>
     <div class="field"><label>Hasta</label><input type="date" id="exp-ff"></div>
     <button class="btn-filter" onclick="exportarCSV()">⬇ Exportar CSV</button>
+    <button class="btn-filter" onclick="exportarXLSX()">⬇ Exportar Excel</button>
   </div>
   <div class="balance-grid">
     <div class="balance-card">
@@ -475,6 +476,19 @@ main{padding-top:56px;min-height:100vh}
     <div class="balance-card">
       <div class="bc-label">Facturado</div>
       <div class="bc-amount" id="bal-facturado" style="color:var(--teal)">…</div>
+    </div>
+  </div>
+  <div class="section-head">Saldo por socio</div>
+  <div class="balance-grid">
+    <div class="balance-card">
+      <div class="bc-label">Emmanuel</div>
+      <div class="bc-amount" id="bal-socio-emmanuel" style="color:var(--blue-mid)">…</div>
+      <div class="bc-sub">Cobrado − gastado, sin restar cortes</div>
+    </div>
+    <div class="balance-card">
+      <div class="bc-label">Jeebe</div>
+      <div class="bc-amount" id="bal-socio-jeebe" style="color:var(--purple)">…</div>
+      <div class="bc-sub">Cobrado − gastado, sin restar cortes</div>
     </div>
   </div>
   <div class="section-head">Actividad reciente</div>
@@ -532,6 +546,15 @@ main{padding-top:56px;min-height:100vh}
         </div>
         <input type="hidden" id="val-renovacion" value="ninguna">
         <input type="number" id="renovacion-custom" placeholder="Meses" min="1" style="display:none;margin-top:6px">
+      </div>
+      <div class="field">
+        <label>¿Quién cobró? (opcional)</label>
+        <div class="seg-ctrl" id="seg-cobrado">
+          <button class="seg-btn" onclick="selSeg('cobrado','emmanuel',this)">Emmanuel</button>
+          <button class="seg-btn" onclick="selSeg('cobrado','jeebe',this)">Jeebe</button>
+          <button class="seg-btn" onclick="selSeg('cobrado','banco',this)">Banco</button>
+        </div>
+        <input type="hidden" id="val-cobrado">
       </div>
       <div class="field">
         <label>Fecha *</label>
@@ -592,6 +615,15 @@ main{padding-top:56px;min-height:100vh}
         <input type="number" id="gasto-monto" placeholder="0" min="0" step="1">
       </div>
       <div class="field">
+        <label>¿Quién pagó? (opcional)</label>
+        <div class="seg-ctrl" id="seg-pagado">
+          <button class="seg-btn" onclick="selSeg('pagado','emmanuel',this)">Emmanuel</button>
+          <button class="seg-btn" onclick="selSeg('pagado','jeebe',this)">Jeebe</button>
+          <button class="seg-btn" onclick="selSeg('pagado','banco',this)">Banco</button>
+        </div>
+        <input type="hidden" id="val-pagado">
+      </div>
+      <div class="field">
         <label>Fecha *</label>
         <input type="date" id="gasto-fecha">
       </div>
@@ -632,6 +664,7 @@ main{padding-top:56px;min-height:100vh}
 
   <!-- PASO 1: Seleccionar período -->
   <div class="corte-step-label">1 · Seleccionar período</div>
+  <div id="corte-saldo-socios" style="font-size:11px;color:var(--gray);margin:-6px 0 14px;font-weight:600">Saldo por socio (histórico): Emmanuel <strong id="csoc-em">…</strong> · Jeebe <strong id="csoc-je">…</strong></div>
   <div class="corte-range">
     <div class="field"><label>Fecha inicio</label><input type="date" id="corte-fi"></div>
     <div class="field"><label>Fecha fin</label><input type="date" id="corte-ff"></div>
@@ -808,6 +841,8 @@ const tipoLabel = {
   gasolina:'Gasolina', productos_quimicos:'Prod. Químicos',
   publicidad:'Publicidad', materiales:'Materiales', otros:'Otros'
 };
+const socioLabel = { emmanuel:'Emmanuel', jeebe:'Jeebe', banco:'Banco' };
+let ultimoPorSocio = {};
 function showToast(msg, type=''){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -895,6 +930,16 @@ function exportarCSV(){
   window.location.href = '/api/export?' + params.toString();
 }
 
+function exportarXLSX(){
+  const fi = document.getElementById('exp-fi').value;
+  const ff = document.getElementById('exp-ff').value;
+  const params = new URLSearchParams();
+  params.set('formato', 'xlsx');
+  if(fi) params.set('desde', fi);
+  if(ff) params.set('hasta', ff);
+  window.location.href = '/api/export?' + params.toString();
+}
+
 // ── RESUMEN ───────────────────────────────────────────────────
 async function loadResumen(){
   try{
@@ -908,6 +953,11 @@ async function loadResumen(){
     document.getElementById('bal-efectivo').textContent      = fmt(pm.efectivo||0);
     document.getElementById('bal-transferencia').textContent = fmt(pm.transferencia||0);
     document.getElementById('bal-facturado').textContent     = fmt(pm.facturado||0);
+
+    ultimoPorSocio = d.porSocio || {};
+    document.getElementById('bal-socio-emmanuel').textContent = fmt(ultimoPorSocio.emmanuel?.saldo||0);
+    document.getElementById('bal-socio-jeebe').textContent    = fmt(ultimoPorSocio.jeebe?.saldo||0);
+    renderSaldoSocioCorte();
 
     const items = [
       ...(d.servicios||[]).map(s=>({...s,_t:'ingreso'})),
@@ -925,7 +975,7 @@ async function loadResumen(){
           <div class="ai-badge ingreso">+</div>
           <div class="ai-info">
             <div class="ai-desc">${esc(item.descripcion||'Servicio cobrado')}</div>
-            <div class="ai-meta">${fmtDate(item.fecha)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)}${item.cliente_nombre?' · '+esc(item.cliente_nombre):''}${item.cobrado_por?' · <span class="cob-tag '+esc(item.cobrado_por)+'">'+esc(socioLabel[item.cobrado_por]||item.cobrado_por)+'</span>':''}</div>
           </div>
           <div class="ai-amount ingreso">+${fmt(item.monto)}</div>
           <button class="btn-del-row" onclick="${delFn}">×</button>
@@ -935,7 +985,7 @@ async function loadResumen(){
           <div class="ai-badge gasto">−</div>
           <div class="ai-info">
             <div class="ai-desc">${esc(item.descripcion||tipoLabel[item.tipo]||'Gasto')}</div>
-            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)}</div>
+            <div class="ai-meta">${fmtDate(item.fecha)} · ${esc(tipoLabel[item.tipo]||item.tipo)}${item.pagado_por?' · <span class="cob-tag '+esc(item.pagado_por)+'">'+esc(socioLabel[item.pagado_por]||item.pagado_por)+'</span>':''}</div>
           </div>
           <div class="ai-amount gasto">−${fmt(item.monto)}</div>
           <button class="btn-del-row" onclick="${delFn}">×</button>
@@ -944,6 +994,13 @@ async function loadResumen(){
   }catch(e){
     document.getElementById('activity-list').innerHTML='<div class="empty-state">Error al cargar datos.</div>';
   }
+}
+
+function renderSaldoSocioCorte(){
+  const em = document.getElementById('csoc-em');
+  if(!em) return;
+  em.textContent = fmt(ultimoPorSocio.emmanuel?.saldo||0);
+  document.getElementById('csoc-je').textContent = fmt(ultimoPorSocio.jeebe?.saldo||0);
 }
 
 // ── COTIZACIONES SEARCH ───────────────────────────────────────
@@ -1019,7 +1076,7 @@ function renderIngresos(list){
     <div class="list-row">
       <div class="lr-info">
         <div class="lr-main">${esc(i.descripcion||'Servicio cobrado')}${i.folio_cotizacion?' <span class="tipo-tag">'+esc(i.folio_cotizacion)+'</span>':''}</div>
-        <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''}</div>
+        <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''}${i.cobrado_por?' · <span class="cob-tag '+esc(i.cobrado_por)+'">'+esc(socioLabel[i.cobrado_por]||i.cobrado_por)+'</span>':''}</div>
       </div>
       <span class="lr-amount ingreso">+${fmt(i.monto)}</span>
       <button class="btn-del-row" onclick="delIngreso('${esc(i.id)}')">×</button>
@@ -1043,6 +1100,7 @@ async function saveIngreso(){
     descripcion:     document.getElementById('ing-desc').value.trim()||null,
     monto,
     metodo_pago: document.getElementById('val-metodo').value||null,
+    cobrado_por: document.getElementById('val-cobrado').value||null,
     renovacion_meses,
     fecha: document.getElementById('ing-fecha').value||today(),
   };
@@ -1057,6 +1115,8 @@ async function saveIngreso(){
     document.getElementById('ing-fecha').value=today();
     document.getElementById('seg-metodo').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
     document.getElementById('val-metodo').value='';
+    document.getElementById('seg-cobrado').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    document.getElementById('val-cobrado').value='';
     document.getElementById('seg-renovacion').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
     document.getElementById('seg-renovacion').querySelector('.seg-btn').className='seg-btn sel-ninguna';
     document.getElementById('val-renovacion').value='ninguna';
@@ -1161,7 +1221,7 @@ function renderGastos(list){
     <div class="list-row">
       <div class="lr-info">
         <div class="lr-main"><span class="tipo-tag">${esc(tipoLabel[g.tipo]||g.tipo)}</span>${g.descripcion?' '+esc(g.descripcion):''}</div>
-        <div class="lr-sub">${fmtDate(g.fecha)}</div>
+        <div class="lr-sub">${fmtDate(g.fecha)}${g.pagado_por?' · <span class="cob-tag '+esc(g.pagado_por)+'">'+esc(socioLabel[g.pagado_por]||g.pagado_por)+'</span>':''}</div>
       </div>
       <span class="lr-amount gasto">−${fmt(g.monto)}</span>
       ${g.comprobante_url?`<a class="comprobante-link" href="${esc(g.comprobante_url)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Ver</a>`:''}
@@ -1192,6 +1252,7 @@ async function saveGasto(){
     monto,
     fecha: document.getElementById('gasto-fecha').value||today(),
     comprobante_url,
+    pagado_por: document.getElementById('val-pagado').value||null,
   };
   try{
     const r=await fetch('/api/finanzas?tipo=gastos',{
@@ -1202,6 +1263,8 @@ async function saveGasto(){
     ['gasto-desc','gasto-monto'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('seg-tipo').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
     document.getElementById('val-tipo').value='';
+    document.getElementById('seg-pagado').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
+    document.getElementById('val-pagado').value='';
     document.getElementById('gasto-fecha').value=today();
     clearFoto();
     loadGastos(); loadResumen();

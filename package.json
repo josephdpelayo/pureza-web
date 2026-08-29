@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "web-push": "^3.6.7",
-    "google-auth-library": "^9.14.1"
+    "google-auth-library": "^9.14.1",
+    "exceljs": "^4.4.0"
   }
 }
