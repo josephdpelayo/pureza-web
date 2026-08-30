@@ -23,25 +23,34 @@ module.exports = async (req, res) => {
     if (!stops.length) return res.status(400).json({ error: 'Agrega al menos una parada' });
 
     // Recorrido fijo: Sonterra -> RP -> paradas del día (en orden) -> RP -> Sonterra.
-    const waypoints = [REAL_PACIFICO, ...stops, REAL_PACIFICO]
-      .map(w => encodeURIComponent(w))
-      .join('|');
+    const intermediates = [REAL_PACIFICO, ...stops, REAL_PACIFICO].map(address => ({ address }));
 
-    const url = `https://maps.googleapis.com/maps/api/directions/json`
-      + `?origin=${encodeURIComponent(SONTERRA)}`
-      + `&destination=${encodeURIComponent(SONTERRA)}`
-      + `&waypoints=${waypoints}`
-      + `&units=metric&key=${GOOGLE_KEY}`;
-
-    const r = await fetch(url);
+    const r = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_KEY,
+        'X-Goog-FieldMask': 'routes.distanceMeters',
+      },
+      body: JSON.stringify({
+        origin: { address: SONTERRA },
+        destination: { address: SONTERRA },
+        intermediates,
+        travelMode: 'DRIVE',
+        units: 'METRIC',
+      }),
+    });
     const data = await r.json();
 
-    if (data.status !== 'OK' || !data.routes || !data.routes.length) {
-      return res.status(422).json({ error: 'No se pudo calcular la ruta', detalle: data.status, mensaje: data.error_message });
+    if (!r.ok || !data.routes || !data.routes.length) {
+      return res.status(422).json({
+        error: 'No se pudo calcular la ruta',
+        detalle: data.error && data.error.status,
+        mensaje: data.error && data.error.message,
+      });
     }
 
-    const legs = data.routes[0].legs || [];
-    const metros = legs.reduce((sum, leg) => sum + (leg.distance ? leg.distance.value : 0), 0);
+    const metros = data.routes[0].distanceMeters || 0;
     const km = Math.round((metros / 1000) * 10) / 10;
     const tarifa_km = Number(TARIFA_KM);
     const costo = Math.round(km * tarifa_km);
