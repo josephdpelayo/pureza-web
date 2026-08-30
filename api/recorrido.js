@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
     const data = await r.json();
 
     if (data.status !== 'OK' || !data.routes || !data.routes.length) {
-      return res.status(422).json({ error: 'No se pudo calcular la ruta', detalle: data.status });
+      return res.status(422).json({ error: 'No se pudo calcular la ruta', detalle: data.status, mensaje: data.error_message });
     }
 
     const legs = data.routes[0].legs || [];
