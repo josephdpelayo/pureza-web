@@ -5,6 +5,15 @@ const SONTERRA    = process.env.ORIGEN_SONTERRA;
 const REAL_PACIFICO = process.env.ORIGEN_REAL_PACIFICO;
 const TARIFA_KM   = process.env.TARIFA_KM_MXN || '4';
 
+const LATLNG_RE = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
+function toWaypoint(value) {
+  const m = String(value).match(LATLNG_RE);
+  if (m) {
+    return { location: { latLng: { latitude: Number(m[1]), longitude: Number(m[2]) } } };
+  }
+  return { address: value };
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -23,7 +32,7 @@ module.exports = async (req, res) => {
     if (!stops.length) return res.status(400).json({ error: 'Agrega al menos una parada' });
 
     // Recorrido fijo: Sonterra -> RP -> paradas del día (en orden) -> RP -> Sonterra.
-    const intermediates = [REAL_PACIFICO, ...stops, REAL_PACIFICO].map(address => ({ address }));
+    const intermediates = [REAL_PACIFICO, ...stops, REAL_PACIFICO].map(toWaypoint);
 
     const r = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
       method: 'POST',
@@ -33,8 +42,8 @@ module.exports = async (req, res) => {
         'X-Goog-FieldMask': 'routes.distanceMeters',
       },
       body: JSON.stringify({
-        origin: { address: SONTERRA },
-        destination: { address: SONTERRA },
+        origin: toWaypoint(SONTERRA),
+        destination: toWaypoint(SONTERRA),
         intermediates,
         travelMode: 'DRIVE',
         units: 'METRIC',
