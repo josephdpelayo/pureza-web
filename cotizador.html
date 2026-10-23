@@ -37,6 +37,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .lock-btn:hover{background:#1430a0}
 .lock-error{font-size:12px;font-weight:700;color:#dc2626;text-align:center;display:none}
+.edit-banner{display:none;margin:12px 20px 0;padding:9px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f5d28a;color:#8a5a00;font-size:12px;font-weight:700}
+.edit-banner.show{display:block}
 
 /* ── LAYOUT ── */
 #layout{display:flex;min-height:100vh}
@@ -352,6 +354,7 @@ table.qt tbody td:not(:first-child){text-align:center}
     <a href="/historial.html" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Historial →</a>
     <a href="/finanzas.html" style="font-size:11px;font-weight:700;color:var(--blue);text-decoration:none;opacity:.7">Finanzas →</a>
   </div>
+  <div class="edit-banner" id="edit-banner"></div>
   <div class="fp-body">
 
     <!-- Cliente -->
@@ -507,7 +510,7 @@ const AUTH_KEY = 'pureza-auth', AUTH_PWD = 'Pureza2000';
 function unlock(){
   document.getElementById('lock').style.display = 'none';
   document.getElementById('layout').style.display = 'flex';
-  loadClients();
+  loadClients().then(cargarDesdeURL);
 }
 
 function checkPwd(){
@@ -573,6 +576,7 @@ async function handleGoogleCredential(resp){
 let clients = [];
 let items = [];
 let selectedId = null;
+let editingId = null; // id de la cotización que se está editando (null = nueva)
 
 // ── API ───────────────────────────────────────────────────────
 async function loadClients() {
@@ -745,6 +749,7 @@ async function generar() {
 
 function newQuote() {
   selectedId = null;
+  setModo(null);
   ['cs-input','f-nombre','f-domicilio','f-tel','f-desc'].forEach(id=>{
     document.getElementById(id).value='';
   });
@@ -778,15 +783,76 @@ async function guardarCotizacion() {
   if(document.getElementById('f-guardar').checked && nombre)
     await saveClientAPI(nombre, document.getElementById('f-domicilio').value.trim(), document.getElementById('f-tel').value.trim());
   try {
-    const r = await fetch('/api/cotizaciones', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),
+    const r = await fetch(editingId ? '/api/cotizaciones?id='+encodeURIComponent(editingId) : '/api/cotizaciones', {
+      method: editingId ? 'PUT' : 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body),
     });
     const d = await r.json();
+    if(!r.ok) return showToastCot(d.error || 'Error al guardar cotización');
     const folio = d.cotizacion?.folio || '—';
-    showToastCot('✓ Guardada como ' + folio, 'green');
+    showToastCot((editingId ? '✓ Actualizada ' : '✓ Guardada como ') + folio, 'green');
+    // Una vez guardada, la cotización queda en modo edición: guardar de nuevo
+    // actualiza este mismo folio en vez de crear otro.
+    if(d.cotizacion?.id) setModo('editar', d.cotizacion);
   } catch(e) {
     showToastCot('Error al guardar cotización');
   }
+}
+
+// ── Editar / duplicar cotización existente ───────────────────
+// historial.html abre /cotizador.html?editar=<id> o ?duplicar=<id>.
+// Editar guarda sobre el mismo folio (PUT); duplicar carga los datos
+// pero al guardar crea una cotización nueva con folio nuevo.
+function setModo(modo, cot){
+  const banner = document.getElementById('edit-banner');
+  editingId = modo === 'editar' ? cot.id : null;
+  if(modo === 'editar'){
+    banner.textContent = '✎ Editando ' + (cot.folio || 'cotización') + ' — Guardar actualiza este folio';
+    history.replaceState(null, '', location.pathname + '?editar=' + encodeURIComponent(cot.id));
+  } else if(modo === 'duplicar'){
+    banner.textContent = '⧉ Copia de ' + (cot.folio || 'cotización') + ' — Guardar crea un folio nuevo';
+  }
+  banner.classList.toggle('show', Boolean(modo));
+  if(!modo && location.search) history.replaceState(null, '', location.pathname);
+}
+
+async function cargarDesdeURL(){
+  const params = new URLSearchParams(location.search);
+  const modo = params.has('editar') ? 'editar' : params.has('duplicar') ? 'duplicar' : null;
+  if(!modo) return;
+  const id = params.get(modo);
+  try{
+    const r = await fetch('/api/cotizaciones?id='+encodeURIComponent(id));
+    const d = await r.json();
+    const c = d.cotizacion;
+    if(!r.ok || !c) throw new Error();
+    cargarCotizacion(c);
+    setModo(modo, c);
+  }catch(e){
+    showToastCot('No se pudo cargar la cotización');
+  }
+}
+
+function cargarCotizacion(c){
+  const cli = c.cliente_id ? clients.find(x=>x.id===c.cliente_id) : null;
+  selectedId = cli ? cli.id : null;
+  document.getElementById('cs-input').value = cli ? cli.nombre : '';
+  document.getElementById('f-nombre').value = c.cliente_nombre || (cli && cli.nombre) || '';
+  document.getElementById('f-domicilio').value = (cli && cli.domicilio) || '';
+  document.getElementById('f-tel').value = (cli && cli.telefono) || '';
+
+  items = [];
+  (Array.isArray(c.items) ? c.items : []).forEach(i=>{
+    items.push({id:'it'+(++itemIdSeq), desc:i.desc||'', qty:Number(i.qty)||1, price:Number(i.price)||''});
+  });
+  if(!items.length) items.push({id:'it'+(++itemIdSeq), desc:'', qty:1, price:''});
+  renderItems();
+
+  const desc = Number(c.descuento) || 0;
+  document.getElementById('f-desc-on').checked = desc > 0;
+  document.getElementById('desc-row').classList.toggle('show', desc > 0);
+  document.getElementById('f-desc').value = desc > 0 ? desc : '';
+  document.getElementById('f-iva-on').checked = Boolean(c.requiere_factura) || Number(c.iva) > 0;
+  updateQ();
 }
 
 function showToastCot(msg, type='') {

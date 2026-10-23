@@ -146,6 +146,13 @@ html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-hei
   font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
   background:var(--bg);border:1px solid var(--border);color:var(--gray);
 }
+.cot-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+.cot-btn{
+  font-size:12px;font-weight:800;padding:7px 14px;border-radius:10px;text-decoration:none;
+  border:1px solid var(--border);background:#fff;color:var(--blue);cursor:pointer;
+}
+.cot-btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.cot-btn-note{font-size:11px;font-weight:600;color:var(--gray);align-self:center;margin-right:auto}
 /* Vacío / cargando */
 .empty{
   text-align:center;padding:60px 20px;color:var(--gray);
@@ -410,6 +417,16 @@ function cotCard(c){
   const ivaRow = requiresInvoice
     ? `<div class="cot-totals-row"><span>IVA 16%</span><span>${fmt$(iva)}</span></div>`
     : '';
+  // Con factura vigente no se permite editar (los montos ya están timbrados);
+  // duplicar sí, porque genera una cotización nueva.
+  const facturada = c.factura && c.factura.estado !== 'cancelada';
+  const idEnc = encodeURIComponent(c.id);
+  const actions = `
+      <div class="cot-actions" onclick="event.stopPropagation()">
+        ${facturada ? '<span class="cot-btn-note">Facturada: no se puede editar</span>'
+                    : `<a class="cot-btn primary" href="/cotizador.html?editar=${idEnc}">Editar</a>`}
+        <a class="cot-btn" href="/cotizador.html?duplicar=${idEnc}">Duplicar</a>
+      </div>`;
   const invoicePill = requiresInvoice
     ? '<span class="cot-pill">Factura con IVA</span>'
     : '';
@@ -454,6 +471,7 @@ function cotCard(c){
         <span class="cot-pill">${escHtml(c.folio||'')}</span>
         ${invoicePill}
       </div>
+      ${actions}
     </div>
   </div>`;
 }

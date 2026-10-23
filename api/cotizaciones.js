@@ -19,7 +19,7 @@ async function nextFolio() {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (!requireAuth(req, res)) return;
@@ -79,6 +79,45 @@ module.exports = async (req, res) => {
       }
       if (!r.ok) return res.status(r.status).json(data);
       return res.json({ cotizacion: Array.isArray(data) ? data[0] : data });
+    }
+
+    if (req.method === 'PUT') {
+      const { id } = req.query || {};
+      const {
+        cliente_id, cliente_nombre, items, subtotal, descuento,
+        total_sin_iva, requiere_factura, iva_tasa, iva, total,
+      } = req.body || {};
+      if (!id) return res.status(400).json({ error: 'id requerido' });
+      if (!items || !Array.isArray(items)) return res.status(400).json({ error: 'items requeridos' });
+
+      // Una cotización ya facturada (CFDI timbrado y vigente) no se puede
+      // modificar: los montos dejarían de coincidir con la factura.
+      const fr = await fetch(`${URL}/rest/v1/facturas?cotizacion_id=eq.${id}&select=id,estado`, { headers: hdrs() });
+      const facturas = fr.ok ? await fr.json() : [];
+      if (Array.isArray(facturas) && facturas.some(f => f.estado !== 'cancelada')) {
+        return res.status(409).json({ error: 'Esta cotización ya tiene factura; cancélala antes de editar' });
+      }
+
+      const body = {
+        cliente_id: cliente_id || null,
+        cliente_nombre: cliente_nombre || null,
+        items,
+        subtotal: Number(subtotal) || 0,
+        descuento: Number(descuento) || 0,
+        total_sin_iva: Number(total_sin_iva) || 0,
+        requiere_factura: Boolean(requiere_factura),
+        iva_tasa: Number(iva_tasa) || 0,
+        iva: Number(iva) || 0,
+        total: Number(total) || 0,
+      };
+      const r = await fetch(`${URL}/rest/v1/cotizaciones?id=eq.${id}`, {
+        method: 'PATCH', headers: hdrs(), body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) return res.status(r.status).json(data);
+      const cotizacion = Array.isArray(data) ? data[0] : data;
+      if (!cotizacion) return res.status(404).json({ error: 'Cotización no encontrada' });
+      return res.json({ cotizacion });
     }
 
     if (req.method === 'DELETE') {
