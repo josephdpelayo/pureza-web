@@ -68,20 +68,31 @@ module.exports = async (req, res) => {
     }
 
     if(req.method === 'POST') {
-      const { id, nombre, domicilio, telefono, notas } = req.body || {};
+      const {
+        id, nombre, domicilio, telefono, notas,
+        rfc, regimen_fiscal, uso_cfdi, codigo_postal, email_facturacion,
+      } = req.body || {};
       if(!nombre) return res.status(400).json({ error: 'nombre requerido' });
+
+      const fiscalBody = {
+        rfc: rfc ? String(rfc).trim().toUpperCase() : null,
+        regimen_fiscal: regimen_fiscal || null,
+        uso_cfdi: uso_cfdi || null,
+        codigo_postal: codigo_postal || null,
+        email_facturacion: email_facturacion || null,
+      };
 
       if(id) {
         const r = await fetch(`${URL}/rest/v1/clientes?id=eq.${id}`, {
           method: 'PATCH', headers: hdrs(),
-          body: JSON.stringify({ nombre, domicilio, telefono, notas, updated_at: new Date().toISOString() }),
+          body: JSON.stringify({ nombre, domicilio, telefono, notas, ...fiscalBody, updated_at: new Date().toISOString() }),
         });
         const data = await r.json();
         return res.json({ client: Array.isArray(data) ? data[0] : data });
       } else {
         const r = await fetch(`${URL}/rest/v1/clientes`, {
           method: 'POST', headers: hdrs(),
-          body: JSON.stringify({ nombre, domicilio, telefono, notas }),
+          body: JSON.stringify({ nombre, domicilio, telefono, notas, ...fiscalBody }),
         });
         const data = await r.json();
         return res.json({ client: Array.isArray(data) ? data[0] : data });

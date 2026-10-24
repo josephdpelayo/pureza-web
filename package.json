@@ -2,8 +2,9 @@
   "name": "pureza-web",
   "version": "1.0.0",
   "dependencies": {
-    "web-push": "^3.6.7",
+    "exceljs": "^4.4.0",
+    "facturapi": "^4.20.0",
     "google-auth-library": "^9.14.1",
-    "exceljs": "^4.4.0"
+    "web-push": "^3.6.7"
   }
 }

@@ -39,7 +39,20 @@ module.exports = async (req, res) => {
       if (hasta) url += `&created_at=lte.${encodeURIComponent(hasta)}`;
       const r = await fetch(url, { headers: hdrs() });
       const data = await r.json();
-      return res.json({ cotizaciones: Array.isArray(data) ? data : [] });
+      const cotizaciones = Array.isArray(data) ? data : [];
+
+      // Adjunta la factura (si existe) a cada cotización con IVA, en una sola
+      // consulta extra en vez de una por renglón.
+      const idsFacturables = cotizaciones.filter(c => c.requiere_factura).map(c => c.id);
+      if (idsFacturables.length) {
+        const fr = await fetch(`${URL}/rest/v1/facturas?cotizacion_id=in.(${idsFacturables.join(',')})`, { headers: hdrs() });
+        const facturas = (await fr.json()) || [];
+        const porId = {};
+        if (Array.isArray(facturas)) for (const f of facturas) porId[f.cotizacion_id] = f;
+        for (const c of cotizaciones) if (porId[c.id]) c.factura = porId[c.id];
+      }
+
+      return res.json({ cotizaciones });
     }
 
     if (req.method === 'POST') {

@@ -92,12 +92,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Fields */
 .field{margin-bottom:10px}
 .field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
-.field input{
+.field input,.field select{
   width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;
   font-size:13px;font-family:var(--font);color:var(--text);outline:none;
   transition:border-color .15s;background:var(--white)
 }
-.field input:focus{border-color:var(--blue)}
+.field input:focus,.field select:focus{border-color:var(--blue)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
 
 /* Items */
 .items-cols{display:grid;grid-template-columns:1fr 52px 76px 26px;gap:5px;margin-bottom:4px}
@@ -173,6 +175,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .toast-cot.show{transform:translateX(-50%) translateY(0)}
 .toast-cot.green{background:#16a34a}
+
+/* ── FACTURACIÓN ── */
+.btn-facturar{
+  background:#0891b2;color:var(--white);border:none;border-radius:10px;
+  padding:13px 14px;font-size:12px;font-weight:700;font-family:var(--font);
+  cursor:pointer;white-space:nowrap;transition:opacity .15s;
+}
+.btn-facturar:hover{opacity:.85}
+.factura-link{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:700;
+  color:#0891b2;background:rgba(8,145,178,.08);text-decoration:none;border-radius:10px;
+  padding:13px 14px;white-space:nowrap;
+}
+
+#fact-modal-overlay{
+  display:none;position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,.5);
+  align-items:center;justify-content:center;padding:20px;
+}
+.fact-modal{
+  background:var(--white);border-radius:14px;padding:22px;width:100%;max-width:380px;
+  max-height:88vh;overflow-y:auto;
+}
+.fact-modal h3{font-size:14px;font-weight:800;margin-bottom:2px}
+.fact-modal .fact-sub{font-size:12px;color:var(--gray);margin-bottom:16px}
+.fact-modal-actions{display:flex;gap:8px;margin-top:16px}
+.fact-modal-close{
+  flex-shrink:0;background:none;border:1.5px solid var(--border);border-radius:8px;padding:0 16px;
+  font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;color:var(--text);
+}
+.fact-modal-close:hover{border-color:#94a3b8}
 
 /* ── QUOTE PANEL ── */
 .qa-bar{
@@ -418,6 +450,9 @@ table.qt tbody td:not(:first-child){text-align:center}
     <button class="btn-guardar" onclick="guardarCotizacion()">Guardar</button>
     <button class="btn-ver" onclick="generar()">Ver →</button>
   </div>
+  <div class="fp-actions" id="fp-factura-row" style="display:none;padding-top:0">
+    <button class="btn-facturar" id="btn-facturar-cot" style="flex:1" onclick="facturarCotizacionActual()">Facturar esta cotización</button>
+  </div>
 </div>
 
 <!-- ══ QUOTE PANEL ═════════════════════════════════════════════ -->
@@ -503,6 +538,70 @@ table.qt tbody td:not(:first-child){text-align:center}
 </div>
 
 </div><!-- /layout -->
+
+<div id="fact-modal-overlay">
+  <div class="fact-modal">
+    <h3>Facturar</h3>
+    <div class="fact-sub" id="fm-cliente">—</div>
+    <div class="field-row">
+      <div class="field">
+        <label>RFC</label>
+        <input type="text" id="fm-rfc" placeholder="XAXX010101000" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Código postal</label>
+        <input type="text" id="fm-cp" placeholder="80000" maxlength="5">
+      </div>
+    </div>
+    <div class="field">
+      <label>Régimen fiscal</label>
+      <select id="fm-regimen">
+        <option value="">Selecciona…</option>
+        <option value="601">601 · General de Ley Personas Morales</option>
+        <option value="603">603 · Personas Morales con Fines no Lucrativos</option>
+        <option value="605">605 · Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
+        <option value="606">606 · Arrendamiento</option>
+        <option value="608">608 · Demás ingresos</option>
+        <option value="612">612 · Personas Físicas con Actividades Empresariales y Profesionales</option>
+        <option value="616">616 · Sin obligaciones fiscales</option>
+        <option value="621">621 · Incorporación Fiscal</option>
+        <option value="625">625 · Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+        <option value="626">626 · Régimen Simplificado de Confianza</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Uso de CFDI</label>
+      <select id="fm-uso">
+        <option value="">Selecciona…</option>
+        <option value="G01">G01 · Adquisición de mercancías</option>
+        <option value="G03">G03 · Gastos en general</option>
+        <option value="I08">I08 · Otra maquinaria y equipo</option>
+        <option value="S01">S01 · Sin efectos fiscales</option>
+        <option value="CP01">CP01 · Pagos</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Forma de pago</label>
+      <select id="fm-forma-pago">
+        <option value="">Selecciona…</option>
+        <option value="01">01 · Efectivo</option>
+        <option value="03">03 · Transferencia electrónica de fondos</option>
+        <option value="04">04 · Tarjeta de crédito</option>
+        <option value="28">28 · Tarjeta de débito</option>
+        <option value="99">99 · Por definir</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Email de facturación (opcional)</label>
+      <input type="email" id="fm-email" placeholder="cliente@correo.com">
+    </div>
+    <div class="fact-modal-actions">
+      <button class="fact-modal-close" onclick="cerrarFacturaModal()">Cancelar</button>
+      <button class="btn-ver" id="fm-submit" onclick="confirmarFactura()">Timbrar factura</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Auth ──────────────────────────────────────────────────────
 const AUTH_KEY = 'pureza-auth', AUTH_PWD = 'Pureza2000';
@@ -793,6 +892,13 @@ async function guardarCotizacion() {
     // Una vez guardada, la cotización queda en modo edición: guardar de nuevo
     // actualiza este mismo folio en vez de crear otro.
     if(d.cotizacion?.id) setModo('editar', d.cotizacion);
+    if(ivaOn && d.cotizacion?.id){
+      cotizacionFacturableId = d.cotizacion.id;
+      cotizacionFacturableCliente = nombre;
+      document.getElementById('fp-factura-row').style.display = 'flex';
+      document.getElementById('btn-facturar-cot').style.display = '';
+      document.getElementById('btn-facturar-cot').textContent = 'Facturar esta cotización';
+    }
   } catch(e) {
     showToastCot('Error al guardar cotización');
   }
@@ -852,7 +958,91 @@ function cargarCotizacion(c){
   document.getElementById('desc-row').classList.toggle('show', desc > 0);
   document.getElementById('f-desc').value = desc > 0 ? desc : '';
   document.getElementById('f-iva-on').checked = Boolean(c.requiere_factura) || Number(c.iva) > 0;
+  document.getElementById('fp-factura-row').style.display = 'none';
   updateQ();
+}
+
+// ── Facturación (CFDI) ──────────────────────────────────────────
+let cotizacionFacturableId = null;
+let cotizacionFacturableCliente = '';
+let factCtx = null;
+
+function facturarCotizacionActual(){
+  if(!cotizacionFacturableId) return;
+  abrirFacturaModal('cotizacion', cotizacionFacturableId, cotizacionFacturableCliente);
+}
+
+async function abrirFacturaModal(origen, id, clienteNombre){
+  factCtx = { origen, id };
+  document.getElementById('fm-cliente').textContent = clienteNombre ? 'Cliente: '+clienteNombre : '';
+  try{
+    const r = await fetch('/api/facturas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ origen, id }),
+    });
+    const d = await r.json();
+    if(r.status === 422){
+      fillFacturaModal(d.conocido||{});
+      document.getElementById('fact-modal-overlay').style.display = 'flex';
+      return;
+    }
+    if(!r.ok) throw new Error(d.error || 'Error al facturar');
+    facturaLista(d.factura);
+  }catch(e){
+    showToastCot('Error al facturar'+(e.message?': '+e.message:''));
+  }
+}
+
+function fillFacturaModal(c){
+  document.getElementById('fm-rfc').value = c.rfc || '';
+  document.getElementById('fm-cp').value = c.codigo_postal || '';
+  document.getElementById('fm-regimen').value = c.regimen_fiscal || '';
+  document.getElementById('fm-uso').value = c.uso_cfdi || '';
+  document.getElementById('fm-email').value = c.email_facturacion || '';
+  document.getElementById('fm-forma-pago').value = '';
+}
+
+function cerrarFacturaModal(){
+  document.getElementById('fact-modal-overlay').style.display = 'none';
+  factCtx = null;
+}
+
+async function confirmarFactura(){
+  if(!factCtx) return;
+  const receptor = {
+    rfc: document.getElementById('fm-rfc').value.trim(),
+    codigo_postal: document.getElementById('fm-cp').value.trim(),
+    regimen_fiscal: document.getElementById('fm-regimen').value,
+    uso_cfdi: document.getElementById('fm-uso').value,
+    email_facturacion: document.getElementById('fm-email').value.trim() || undefined,
+  };
+  const forma_pago = document.getElementById('fm-forma-pago').value;
+  if(!receptor.rfc || !receptor.codigo_postal || !receptor.regimen_fiscal || !receptor.uso_cfdi)
+    return showToastCot('Completa los datos fiscales');
+  if(!forma_pago) return showToastCot('Selecciona la forma de pago');
+
+  const btn = document.getElementById('fm-submit');
+  btn.disabled = true; btn.textContent = 'Timbrando…';
+  try{
+    const r = await fetch('/api/facturas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ ...factCtx, receptor, forma_pago, guardar:true }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Error al facturar');
+    cerrarFacturaModal();
+    facturaLista(d.factura);
+  }catch(e){
+    showToastCot('Error al facturar'+(e.message?': '+e.message:''));
+  }finally{
+    btn.disabled = false; btn.textContent = 'Timbrar factura';
+  }
+}
+
+function facturaLista(factura){
+  showToastCot('✓ Factura generada', 'green');
+  const btn = document.getElementById('btn-facturar-cot');
+  btn.outerHTML = `<a class="factura-link" id="btn-facturar-cot" href="/api/facturas?id=${esc(factura.id)}&file=pdf" target="_blank" rel="noopener">Ver factura</a>`;
 }
 
 function showToastCot(msg, type='') {

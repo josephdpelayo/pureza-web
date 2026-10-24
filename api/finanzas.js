@@ -104,7 +104,20 @@ module.exports = async (req, res) => {
         if (fecha_inicio) url += `&fecha=gte.${fecha_inicio}`;
         if (fecha_fin)    url += `&fecha=lte.${fecha_fin}`;
         const r = await fetch(url, { headers: hdrs() });
-        return res.json({ ingresos: (await r.json()) || [] });
+        const ingresos = (await r.json()) || [];
+
+        // Adjunta la factura (si existe) a cada ingreso facturado, en una sola
+        // consulta extra en vez de una por renglón.
+        const idsFacturables = ingresos.filter(i => i.metodo_pago === 'facturado').map(i => i.id);
+        if (idsFacturables.length) {
+          const fr = await fetch(`${URL}/rest/v1/facturas?servicio_cobrado_id=in.(${idsFacturables.join(',')})`, { headers: hdrs() });
+          const facturas = (await fr.json()) || [];
+          const porId = {};
+          if (Array.isArray(facturas)) for (const f of facturas) porId[f.servicio_cobrado_id] = f;
+          for (const i of ingresos) if (porId[i.id]) i.factura = porId[i.id];
+        }
+
+        return res.json({ ingresos });
       }
       if (req.method === 'POST') {
         const {
@@ -228,12 +241,35 @@ module.exports = async (req, res) => {
           const disponible     = Math.max(0, total_ingresos - total_gastos);
           const perdida        = total_gastos > total_ingresos ? total_gastos - total_ingresos : 0;
 
+          // Desglose por socio: Emmanuel = efectivo, Jeebe = transferencias, igual
+          // que el corte que ya se reportan por WhatsApp cada semana.
+          const porSocio = {
+            emmanuel:       { ingresos: [], gastos: [], total_ingresos: 0, total_gastos: 0, saldo: 0 },
+            jeebe:          { ingresos: [], gastos: [], total_ingresos: 0, total_gastos: 0, saldo: 0 },
+            banco:          { ingresos: [], gastos: [], total_ingresos: 0, total_gastos: 0, saldo: 0 },
+            sin_clasificar: { ingresos: [], gastos: [], total_ingresos: 0, total_gastos: 0, saldo: 0 },
+          };
+          for (const s of servicios) {
+            const k = porSocio[s.cobrado_por] ? s.cobrado_por : 'sin_clasificar';
+            porSocio[k].ingresos.push(s);
+            porSocio[k].total_ingresos += Number(s.monto);
+          }
+          for (const g of gastos) {
+            const k = porSocio[g.pagado_por] ? g.pagado_por : 'sin_clasificar';
+            porSocio[k].gastos.push(g);
+            porSocio[k].total_gastos += Number(g.monto);
+          }
+          for (const k of Object.keys(porSocio)) {
+            porSocio[k].saldo = porSocio[k].total_ingresos - porSocio[k].total_gastos;
+          }
+
           return res.json({
             calculo: {
               fecha_inicio, fecha_fin,
               total_ingresos, total_gastos,
               disponible, perdida,
               traslapes,
+              por_socio: porSocio,
             },
           });
         }
@@ -254,11 +290,36 @@ module.exports = async (req, res) => {
           reparto_jeebe:     Number(c.reparto_jeebe)     || 0,
           fondo_ahorro:      Number(c.fondo_ahorro)      || 0,
           notas:             c.notas || null,
+          // Desglose por socio (Emmanuel=efectivo, Jeebe=transferencias) para que
+          // el historial de cortes conserve el mismo detalle que hoy se reporta
+          // por WhatsApp. Requiere migracion_corte_por_socio.sql.
+          ingresos_emmanuel: Number(c.por_socio?.emmanuel?.total_ingresos) || 0,
+          gastos_emmanuel:   Number(c.por_socio?.emmanuel?.total_gastos)   || 0,
+          ingresos_jeebe:    Number(c.por_socio?.jeebe?.total_ingresos)    || 0,
+          gastos_jeebe:      Number(c.por_socio?.jeebe?.total_gastos)      || 0,
+          ingresos_banco:    Number(c.por_socio?.banco?.total_ingresos)    || 0,
+          gastos_banco:      Number(c.por_socio?.banco?.total_gastos)      || 0,
         };
-        const r = await fetch(`${URL}/rest/v1/cortes`, {
+        let r = await fetch(`${URL}/rest/v1/cortes`, {
           method: 'POST', headers: hdrs(), body: JSON.stringify(body),
         });
-        const data = await r.json();
+        let data = await r.json();
+        if (!r.ok && /ingresos_emmanuel|gastos_emmanuel|ingresos_jeebe|gastos_jeebe|ingresos_banco|gastos_banco/i.test(JSON.stringify(data))) {
+          // migracion_corte_por_socio.sql no se ha corrido todavía: guarda el
+          // corte sin el desglose por socio en vez de fallar.
+          const fallbackBody = { ...body };
+          delete fallbackBody.ingresos_emmanuel;
+          delete fallbackBody.gastos_emmanuel;
+          delete fallbackBody.ingresos_jeebe;
+          delete fallbackBody.gastos_jeebe;
+          delete fallbackBody.ingresos_banco;
+          delete fallbackBody.gastos_banco;
+          r = await fetch(`${URL}/rest/v1/cortes`, {
+            method: 'POST', headers: hdrs(), body: JSON.stringify(fallbackBody),
+          });
+          data = await r.json();
+        }
+        if (!r.ok) return res.status(r.status).json(data);
         return res.json({ corte: Array.isArray(data) ? data[0] : data });
       }
     }

@@ -127,6 +127,16 @@ main{padding-top:56px;min-height:100vh}
 }
 .field input:focus,.field select:focus{border-color:var(--blue-mid)}
 
+.mas-opciones{margin-bottom:16px}
+.mas-opciones summary{
+  font-size:11px;font-weight:700;color:var(--gray);cursor:pointer;
+  padding:6px 0;list-style:none;
+}
+.mas-opciones summary::-webkit-details-marker{display:none}
+.mas-opciones summary::before{content:'▸ ';display:inline-block}
+.mas-opciones[open] summary::before{content:'▾ '}
+.mas-opciones .field:first-of-type{margin-top:10px}
+
 /* ── SEGMENTED CONTROL ── */
 .seg-ctrl{display:flex;gap:6px;flex-wrap:wrap}
 .seg-btn{
@@ -143,6 +153,27 @@ main{padding-top:56px;min-height:100vh}
 .seg-btn.sel-ninguna,.seg-btn.sel-3,.seg-btn.sel-5,.seg-btn.sel-6,.seg-btn.sel-12,.seg-btn.sel-custom{
   border-color:var(--blue-mid);background:rgba(37,99,235,.08);color:var(--blue-mid);
 }
+
+/* ── ¿QUIÉN ERES? (identidad recordada por dispositivo) ── */
+.soy-bar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;
+}
+.soy-label{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);white-space:nowrap}
+.soy-bar .seg-ctrl{flex:1;min-width:180px}
+.soy-bar .seg-btn{min-width:90px}
+
+/* ── TU CORTE DE ESTA SEMANA (resumen en vivo) ── */
+.semana-banner{
+  display:none;background:var(--blue-dark);color:var(--white);border-radius:12px;
+  padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;
+}
+.semana-banner.show{display:flex}
+.semana-titulo{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:4px}
+.semana-nums{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.semana-nums b{font-size:15px}
+.semana-queda{font-size:20px;font-weight:900}
 
 /* ── RUTA / GASOLINA ── */
 .ruta-toggle{
@@ -271,6 +302,20 @@ main{padding-top:56px;min-height:100vh}
 .cs-row.total{font-weight:900;font-size:14px;border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
 .cs-row.total .v{color:var(--blue-mid)}
 .cs-row.total-red .v{color:var(--red)}
+
+/* Desglose por socio (itemizado) */
+.corte-socio-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.socio-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px}
+.socio-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.socio-card-sub{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin:12px 0 6px}
+.socio-item{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:3px 0;color:var(--text)}
+.socio-item .v{font-weight:700;white-space:nowrap}
+.socio-item.ingreso .v{color:var(--green)}
+.socio-item.gasto .v{color:var(--red)}
+.socio-empty{font-size:11px;color:var(--gray);padding:3px 0}
+.socio-total{display:flex;justify-content:space-between;font-size:13px;font-weight:900;border-top:1px solid var(--border);margin-top:8px;padding-top:8px}
+.socio-queda{display:flex;justify-content:space-between;font-size:13px;font-weight:900;margin-top:10px;padding-top:10px;border-top:1.5px solid var(--border)}
+.socio-queda .v{color:var(--blue-mid)}
 
 /* Banners de advertencia del corte */
 .corte-alerta{
@@ -404,6 +449,42 @@ main{padding-top:56px;min-height:100vh}
 .toast.green{background:var(--green)}
 .toast.red{background:var(--red)}
 
+/* ── FACTURACIÓN ── */
+.factura-btn{
+  display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  color:var(--teal);background:rgba(8,145,178,.08);border:none;border-radius:4px;
+  padding:4px 9px;cursor:pointer;font-family:var(--font);flex-shrink:0;white-space:nowrap;
+}
+.factura-btn:hover{background:rgba(8,145,178,.16)}
+.factura-btn:disabled{opacity:.6;cursor:default}
+.factura-cancel{
+  font-size:10px;font-weight:700;color:var(--gray);background:none;border:none;
+  cursor:pointer;font-family:var(--font);flex-shrink:0;text-decoration:underline;
+}
+.factura-cancel:hover{color:var(--red)}
+.factura-estado{
+  display:inline-block;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:2px 7px;border-radius:4px;background:rgba(100,116,139,.12);color:var(--gray);flex-shrink:0;
+}
+
+#fact-modal-overlay{
+  display:none;position:fixed;inset:0;z-index:2000;background:rgba(15,23,42,.5);
+  align-items:center;justify-content:center;padding:20px;
+}
+.fact-modal{
+  background:var(--white);border-radius:14px;padding:22px;width:100%;max-width:380px;
+  max-height:88vh;overflow-y:auto;
+}
+.fact-modal h3{font-size:14px;font-weight:800;margin-bottom:2px}
+.fact-modal .fact-sub{font-size:12px;color:var(--gray);margin-bottom:16px}
+.fact-modal-actions{display:flex;gap:8px;margin-top:16px}
+.fact-modal-actions .btn-submit{margin-top:0}
+.fact-modal-close{
+  flex-shrink:0;background:none;border:1.5px solid var(--border);border-radius:8px;padding:0 16px;
+  font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;color:var(--text);
+}
+.fact-modal-close:hover{border-color:#94a3b8}
+
 @media(max-width:600px){
   nav{padding:0 12px;gap:8px}
   .nav-tab{padding:6px 10px;font-size:11px}
@@ -499,17 +580,26 @@ main{padding-top:56px;min-height:100vh}
 
 <!-- ══ TAB: INGRESOS ═════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-ingresos">
+  <div class="soy-bar">
+    <span class="soy-label">Capturando como</span>
+    <div class="seg-ctrl" id="seg-soy-ing">
+      <button class="seg-btn" onclick="setSoy('emmanuel',this)">Emmanuel</button>
+      <button class="seg-btn" onclick="setSoy('jeebe',this)">Jeebe</button>
+    </div>
+  </div>
+  <div class="semana-banner" id="semana-banner-ing">
+    <div>
+      <div class="semana-titulo">Tu semana</div>
+      <div class="semana-nums">
+        <span>Cobraste <b id="sem-ing-cobrado">$0</b></span>
+        <span>Gastaste <b id="sem-ing-gastado">$0</b></span>
+      </div>
+    </div>
+    <div class="semana-queda" id="sem-ing-queda">$0</div>
+  </div>
   <div class="two-panel">
     <div class="form-card">
       <div class="fc-title">Registrar ingreso</div>
-      <div class="field cs-wrap" id="cot-search-wrap">
-        <label>Cotización (opcional)</label>
-        <input type="text" id="ing-cot-search" placeholder="Buscar por folio o cliente…" autocomplete="off"
-          oninput="searchCotizaciones(this.value)" onfocus="openCotDrop()">
-        <div class="cs-drop" id="cot-drop"></div>
-        <input type="hidden" id="ing-cot-id">
-        <input type="hidden" id="ing-cot-folio">
-      </div>
       <div class="field cs-wrap" id="ing-cliente-wrap">
         <label>Cliente (opcional)</label>
         <input type="text" id="ing-cliente" placeholder="Nombre del cliente" autocomplete="off"
@@ -535,19 +625,6 @@ main{padding-top:56px;min-height:100vh}
         <input type="hidden" id="val-metodo">
       </div>
       <div class="field">
-        <label>Renovación</label>
-        <div class="seg-ctrl" id="seg-renovacion" style="flex-wrap:wrap">
-          <button class="seg-btn sel-ninguna" onclick="selRenovacion('ninguna',this)">Sin renovación</button>
-          <button class="seg-btn" onclick="selRenovacion('3',this)">3 meses</button>
-          <button class="seg-btn" onclick="selRenovacion('5',this)">5 meses</button>
-          <button class="seg-btn" onclick="selRenovacion('6',this)">6 meses</button>
-          <button class="seg-btn" onclick="selRenovacion('12',this)">12 meses</button>
-          <button class="seg-btn" onclick="selRenovacion('custom',this)">Personalizado</button>
-        </div>
-        <input type="hidden" id="val-renovacion" value="ninguna">
-        <input type="number" id="renovacion-custom" placeholder="Meses" min="1" style="display:none;margin-top:6px">
-      </div>
-      <div class="field">
         <label>¿Quién cobró? (opcional)</label>
         <div class="seg-ctrl" id="seg-cobrado">
           <button class="seg-btn" onclick="selSeg('cobrado','emmanuel',this)">Emmanuel</button>
@@ -560,6 +637,30 @@ main{padding-top:56px;min-height:100vh}
         <label>Fecha *</label>
         <input type="date" id="ing-fecha">
       </div>
+      <details class="mas-opciones">
+        <summary>Más opciones (cotización, renovación)</summary>
+        <div class="field cs-wrap" id="cot-search-wrap">
+          <label>Cotización (opcional)</label>
+          <input type="text" id="ing-cot-search" placeholder="Buscar por folio o cliente…" autocomplete="off"
+            oninput="searchCotizaciones(this.value)" onfocus="openCotDrop()">
+          <div class="cs-drop" id="cot-drop"></div>
+          <input type="hidden" id="ing-cot-id">
+          <input type="hidden" id="ing-cot-folio">
+        </div>
+        <div class="field">
+          <label>Renovación</label>
+          <div class="seg-ctrl" id="seg-renovacion" style="flex-wrap:wrap">
+            <button class="seg-btn sel-ninguna" onclick="selRenovacion('ninguna',this)">Sin renovación</button>
+            <button class="seg-btn" onclick="selRenovacion('3',this)">3 meses</button>
+            <button class="seg-btn" onclick="selRenovacion('5',this)">5 meses</button>
+            <button class="seg-btn" onclick="selRenovacion('6',this)">6 meses</button>
+            <button class="seg-btn" onclick="selRenovacion('12',this)">12 meses</button>
+            <button class="seg-btn" onclick="selRenovacion('custom',this)">Personalizado</button>
+          </div>
+          <input type="hidden" id="val-renovacion" value="ninguna">
+          <input type="number" id="renovacion-custom" placeholder="Meses" min="1" style="display:none;margin-top:6px">
+        </div>
+      </details>
       <button class="btn-submit" onclick="saveIngreso()">Registrar ingreso</button>
     </div>
     <div>
@@ -582,6 +683,23 @@ main{padding-top:56px;min-height:100vh}
 
 <!-- ══ TAB: GASTOS ═══════════════════════════════════════════════ -->
 <div class="tab-panel" id="tab-gastos">
+  <div class="soy-bar">
+    <span class="soy-label">Capturando como</span>
+    <div class="seg-ctrl" id="seg-soy-gas">
+      <button class="seg-btn" onclick="setSoy('emmanuel',this)">Emmanuel</button>
+      <button class="seg-btn" onclick="setSoy('jeebe',this)">Jeebe</button>
+    </div>
+  </div>
+  <div class="semana-banner" id="semana-banner-gas">
+    <div>
+      <div class="semana-titulo">Tu semana</div>
+      <div class="semana-nums">
+        <span>Cobraste <b id="sem-gas-cobrado">$0</b></span>
+        <span>Gastaste <b id="sem-gas-gastado">$0</b></span>
+      </div>
+    </div>
+    <div class="semana-queda" id="sem-gas-queda">$0</div>
+  </div>
   <div class="two-panel">
     <div class="form-card">
       <div class="fc-title">Registrar gasto</div>
@@ -686,6 +804,10 @@ main{padding-top:56px;min-height:100vh}
       </div>
     </div>
 
+    <!-- Desglose por socio (itemizado, igual al reporte de WhatsApp) -->
+    <div class="corte-step-label" style="margin-bottom:4px">Desglose por socio</div>
+    <div class="corte-socio-grid" id="corte-por-socio"></div>
+
     <!-- Advertencia: período con pérdida -->
     <div class="corte-alerta perdida" id="alerta-perdida">
       <div class="alerta-titulo">⚠️ Período con pérdida</div>
@@ -754,6 +876,69 @@ main{padding-top:56px;min-height:100vh}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="fact-modal-overlay">
+  <div class="fact-modal">
+    <h3>Facturar</h3>
+    <div class="fact-sub" id="fm-cliente">—</div>
+    <div class="field-row">
+      <div class="field">
+        <label>RFC</label>
+        <input type="text" id="fm-rfc" placeholder="XAXX010101000" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Código postal</label>
+        <input type="text" id="fm-cp" placeholder="80000" maxlength="5">
+      </div>
+    </div>
+    <div class="field">
+      <label>Régimen fiscal</label>
+      <select id="fm-regimen">
+        <option value="">Selecciona…</option>
+        <option value="601">601 · General de Ley Personas Morales</option>
+        <option value="603">603 · Personas Morales con Fines no Lucrativos</option>
+        <option value="605">605 · Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
+        <option value="606">606 · Arrendamiento</option>
+        <option value="608">608 · Demás ingresos</option>
+        <option value="612">612 · Personas Físicas con Actividades Empresariales y Profesionales</option>
+        <option value="616">616 · Sin obligaciones fiscales</option>
+        <option value="621">621 · Incorporación Fiscal</option>
+        <option value="625">625 · Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+        <option value="626">626 · Régimen Simplificado de Confianza</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Uso de CFDI</label>
+      <select id="fm-uso">
+        <option value="">Selecciona…</option>
+        <option value="G01">G01 · Adquisición de mercancías</option>
+        <option value="G03">G03 · Gastos en general</option>
+        <option value="I08">I08 · Otra maquinaria y equipo</option>
+        <option value="S01">S01 · Sin efectos fiscales</option>
+        <option value="CP01">CP01 · Pagos</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Forma de pago</label>
+      <select id="fm-forma-pago">
+        <option value="">Selecciona…</option>
+        <option value="01">01 · Efectivo</option>
+        <option value="03">03 · Transferencia electrónica de fondos</option>
+        <option value="04">04 · Tarjeta de crédito</option>
+        <option value="28">28 · Tarjeta de débito</option>
+        <option value="99">99 · Por definir</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Email de facturación (opcional)</label>
+      <input type="email" id="fm-email" placeholder="cliente@correo.com">
+    </div>
+    <div class="fact-modal-actions">
+      <button class="fact-modal-close" onclick="cerrarFacturaModal()">Cancelar</button>
+      <button class="btn-submit" id="fm-submit" onclick="confirmarFactura()">Timbrar factura</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── Auth ──────────────────────────────────────────────────────
@@ -827,9 +1012,18 @@ async function handleGoogleCredential(resp){
 })();
 
 // ── Helpers ───────────────────────────────────────────────────
-const today = () => new Date().toISOString().split('T')[0];
+// Fechas en horario local (no toISOString: convierte a UTC y en la tarde/noche
+// en México adelanta la fecha al día siguiente).
+const ymd   = d  => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+const today = () => ymd(new Date());
 const fmt   = n  => '$' + Math.round(Number(n)||0).toLocaleString('es-MX');
 const esc   = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function mondayOfThisWeek(){
+  const d=new Date(), dow=d.getDay();
+  const diff = dow===0?6:dow-1;
+  const mon = new Date(d); mon.setDate(d.getDate()-diff);
+  return ymd(mon);
+}
 
 function fmtDate(d){
   if(!d) return '';
@@ -858,8 +1052,8 @@ function showTab(id, btn){
   document.getElementById('tab-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='resumen')  loadResumen();
-  if(id==='ingresos') { loadIngresos(); loadCotizaciones(); loadClientesFin(); }
-  if(id==='gastos')   loadGastos();
+  if(id==='ingresos') { loadIngresos(); loadCotizaciones(); loadClientesFin(); aplicarSoyDefaults(); }
+  if(id==='gastos')   { loadGastos(); aplicarSoyDefaults(); }
   if(id==='corte')    loadCorteHist();
 }
 
@@ -874,6 +1068,64 @@ function selSeg(group, val, btn){
 function selRenovacion(val, btn){
   selSeg('renovacion', val, btn);
   document.getElementById('renovacion-custom').style.display = val==='custom' ? '' : 'none';
+}
+
+// ── ¿Quién eres? — identidad recordada por dispositivo ──────────
+// Emmanuel = efectivo, Jeebe = transferencias (regla real del negocio).
+// Se guarda en localStorage para no pedirlo cada vez que capturan algo.
+const SOY_KEY = 'pureza-soy';
+const getSoy  = () => localStorage.getItem(SOY_KEY) || '';
+
+function setSoy(val){
+  localStorage.setItem(SOY_KEY, val);
+  aplicarSoyDefaults();
+}
+
+function aplicarSoyDefaults(){
+  const soy = getSoy();
+
+  ['seg-soy-ing','seg-soy-gas'].forEach(id=>{
+    const wrap = document.getElementById(id);
+    wrap.querySelectorAll('.seg-btn').forEach(b=>{
+      b.className = 'seg-btn' + (b.getAttribute('onclick').includes(`'${soy}'`) && soy ? ' sel-'+soy : '');
+    });
+  });
+
+  if(soy){
+    const cobradoBtn = document.querySelector(`#seg-cobrado .seg-btn[onclick*="'${soy}',this"]`);
+    if(cobradoBtn) selSeg('cobrado', soy, cobradoBtn);
+    const pagadoBtn = document.querySelector(`#seg-pagado .seg-btn[onclick*="'${soy}',this"]`);
+    if(pagadoBtn) selSeg('pagado', soy, pagadoBtn);
+    const metodoVal = soy==='emmanuel' ? 'efectivo' : 'transferencia';
+    const metodoBtn = document.querySelector(`#seg-metodo .seg-btn[onclick*="'${metodoVal}',this"]`);
+    if(metodoBtn) selSeg('metodo', metodoVal, metodoBtn);
+  }
+
+  renderResumenSemana();
+}
+
+async function renderResumenSemana(){
+  const soy = getSoy();
+  const banners = [
+    { id:'semana-banner-ing', cobrado:'sem-ing-cobrado', gastado:'sem-ing-gastado', queda:'sem-ing-queda' },
+    { id:'semana-banner-gas', cobrado:'sem-gas-cobrado', gastado:'sem-gas-gastado', queda:'sem-gas-queda' },
+  ];
+  if(!soy){
+    banners.forEach(b=>document.getElementById(b.id).classList.remove('show'));
+    return;
+  }
+  try{
+    const fi = mondayOfThisWeek(), ff = today();
+    const r = await fetch(`/api/finanzas?tipo=cortes&calcular=1&fecha_inicio=${fi}&fecha_fin=${ff}`);
+    const d = await r.json();
+    const datos = (d.calculo && d.calculo.por_socio && d.calculo.por_socio[soy]) || { total_ingresos:0, total_gastos:0, saldo:0 };
+    banners.forEach(b=>{
+      document.getElementById(b.cobrado).textContent = fmt(datos.total_ingresos);
+      document.getElementById(b.gastado).textContent = fmt(datos.total_gastos);
+      document.getElementById(b.queda).textContent   = fmt(datos.saldo);
+      document.getElementById(b.id).classList.add('show');
+    });
+  }catch(e){}
 }
 
 // ── Clientes (autocomplete para Ingresos) ───────────────────────
@@ -912,13 +1164,8 @@ function selectIngCliente(id){
 // ── Init dates ────────────────────────────────────────────────
 document.getElementById('ing-fecha').value   = today();
 document.getElementById('gasto-fecha').value = today();
-(function(){
-  const d=new Date(), dow=d.getDay();
-  const diff = dow===0?6:dow-1;
-  const mon = new Date(d); mon.setDate(d.getDate()-diff);
-  document.getElementById('corte-fi').value = mon.toISOString().split('T')[0];
-  document.getElementById('corte-ff').value = today();
-})();
+document.getElementById('corte-fi').value = mondayOfThisWeek();
+document.getElementById('corte-ff').value = today();
 
 // ── EXPORTAR CSV ──────────────────────────────────────────────
 function exportarCSV(){
@@ -1079,8 +1326,119 @@ function renderIngresos(list){
         <div class="lr-sub">${fmtDate(i.fecha)}${i.cliente_nombre?' · '+esc(i.cliente_nombre):''}${i.cobrado_por?' · <span class="cob-tag '+esc(i.cobrado_por)+'">'+esc(socioLabel[i.cobrado_por]||i.cobrado_por)+'</span>':''}</div>
       </div>
       <span class="lr-amount ingreso">+${fmt(i.monto)}</span>
+      ${facturaControlsHTML(i)}
       <button class="btn-del-row" onclick="delIngreso('${esc(i.id)}')">×</button>
     </div>`).join('');
+}
+
+// ── FACTURACIÓN (CFDI) ────────────────────────────────────────
+function facturaControlsHTML(i){
+  if(i.metodo_pago !== 'facturado') return '';
+  if(i.factura && i.factura.estado === 'timbrada'){
+    return `<a class="factura-btn" href="/api/facturas?id=${esc(i.factura.id)}&file=pdf" target="_blank" rel="noopener">Ver factura</a>
+      <button class="factura-cancel" onclick="cancelarFactura('${esc(i.factura.id)}')">Cancelar</button>`;
+  }
+  if(i.factura && i.factura.estado === 'cancelada'){
+    return `<span class="factura-estado">Cancelada</span>
+      <button class="factura-btn" onclick="facturarIngreso('${esc(i.id)}','${esc((i.cliente_nombre||'').replace(/'/g,"\\'"))}')">Refacturar</button>`;
+  }
+  return `<button class="factura-btn" onclick="facturarIngreso('${esc(i.id)}','${esc((i.cliente_nombre||'').replace(/'/g,"\\'"))}')">Facturar</button>`;
+}
+
+let factCtx = null;
+
+function facturarIngreso(id, clienteNombre){
+  abrirFacturaModal('ingreso', id, clienteNombre);
+}
+
+async function abrirFacturaModal(origen, id, clienteNombre){
+  factCtx = { origen, id };
+  document.getElementById('fm-cliente').textContent = clienteNombre ? 'Cliente: '+clienteNombre : '';
+  try{
+    const r = await fetch('/api/facturas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ origen, id }),
+    });
+    const d = await r.json();
+    if(r.status === 422){
+      fillFacturaModal(d.conocido||{});
+      document.getElementById('fact-modal-overlay').style.display = 'flex';
+      return;
+    }
+    if(r.status === 409){
+      showToast('Ya existe una factura para este registro', 'red');
+      loadIngresos(); loadResumen();
+      return;
+    }
+    if(!r.ok) throw new Error(d.error || 'Error al facturar');
+    showToast('Factura generada ✓', 'green');
+    loadIngresos(); loadResumen();
+  }catch(e){
+    showToast('Error al facturar'+(e.message?': '+e.message:''), 'red');
+  }
+}
+
+function fillFacturaModal(c){
+  document.getElementById('fm-rfc').value = c.rfc || '';
+  document.getElementById('fm-cp').value = c.codigo_postal || '';
+  document.getElementById('fm-regimen').value = c.regimen_fiscal || '';
+  document.getElementById('fm-uso').value = c.uso_cfdi || '';
+  document.getElementById('fm-email').value = c.email_facturacion || '';
+  document.getElementById('fm-forma-pago').value = '';
+}
+
+function cerrarFacturaModal(){
+  document.getElementById('fact-modal-overlay').style.display = 'none';
+  factCtx = null;
+}
+
+async function confirmarFactura(){
+  if(!factCtx) return;
+  const receptor = {
+    rfc: document.getElementById('fm-rfc').value.trim(),
+    codigo_postal: document.getElementById('fm-cp').value.trim(),
+    regimen_fiscal: document.getElementById('fm-regimen').value,
+    uso_cfdi: document.getElementById('fm-uso').value,
+    email_facturacion: document.getElementById('fm-email').value.trim() || undefined,
+  };
+  const forma_pago = document.getElementById('fm-forma-pago').value;
+  if(!receptor.rfc || !receptor.codigo_postal || !receptor.regimen_fiscal || !receptor.uso_cfdi)
+    return showToast('Completa los datos fiscales', 'red');
+  if(!forma_pago) return showToast('Selecciona la forma de pago', 'red');
+
+  const btn = document.getElementById('fm-submit');
+  btn.disabled = true; btn.textContent = 'Timbrando…';
+  try{
+    const r = await fetch('/api/facturas', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ ...factCtx, receptor, forma_pago, guardar:true }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Error al facturar');
+    showToast('Factura generada ✓', 'green');
+    cerrarFacturaModal();
+    loadIngresos(); loadResumen();
+  }catch(e){
+    showToast('Error al facturar'+(e.message?': '+e.message:''), 'red');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Timbrar factura';
+  }
+}
+
+async function cancelarFactura(facturaId){
+  if(!confirm('¿Cancelar esta factura ante el SAT? No se puede deshacer.')) return;
+  try{
+    const r = await fetch('/api/facturas?action=cancelar', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id: facturaId, motivo:'02' }),
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error || 'Error al cancelar');
+    showToast('Factura cancelada', 'green');
+    loadIngresos(); loadResumen();
+  }catch(e){
+    showToast('Error al cancelar'+(e.message?': '+e.message:''), 'red');
+  }
 }
 
 async function saveIngreso(){
@@ -1120,6 +1478,7 @@ async function saveIngreso(){
     document.getElementById('seg-renovacion').querySelectorAll('.seg-btn').forEach(b=>b.className='seg-btn');
     document.getElementById('seg-renovacion').querySelector('.seg-btn').className='seg-btn sel-ninguna';
     document.getElementById('val-renovacion').value='ninguna';
+    aplicarSoyDefaults();
     loadIngresos(); loadResumen();
   }catch(e){ showToast('Error al guardar','red'); }
 }
@@ -1267,6 +1626,7 @@ async function saveGasto(){
     document.getElementById('val-pagado').value='';
     document.getElementById('gasto-fecha').value=today();
     clearFoto();
+    aplicarSoyDefaults();
     loadGastos(); loadResumen();
   }catch(e){ showToast('Error al guardar','red'); }
   finally{ btn.disabled=false; btn.textContent='Registrar gasto'; }
@@ -1358,6 +1718,8 @@ async function calcularCorte(){
     document.getElementById('cr-disponible').textContent  = fmt(corteCalculo.disponible);
     document.getElementById('db-disponible-lbl').textContent = fmt(corteCalculo.disponible);
 
+    renderPorSocioCorte(corteCalculo.por_socio || {});
+
     // Advertencia: pérdida
     const alertaPerdida = document.getElementById('alerta-perdida');
     if(corteCalculo.perdida > 0){
@@ -1387,6 +1749,50 @@ async function calcularCorte(){
     document.getElementById('corte-result-area').style.display='block';
     document.getElementById('corte-result-area').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(e){ showToast('Error al calcular','red'); }
+}
+
+function socioCardHTML(nombre, colorClass, data){
+  data = data || {};
+  const ingresos = data.ingresos || [];
+  const gastos    = data.gastos    || [];
+  const ingresosHTML = ingresos.length
+    ? ingresos.map(i=>`<div class="socio-item ingreso"><span>${esc(i.descripcion||'Servicio cobrado')}</span><span class="v">+${fmt(i.monto)}</span></div>`).join('')
+    : '<div class="socio-empty">Sin ingresos en el período.</div>';
+  const gastosHTML = gastos.length
+    ? gastos.map(g=>`<div class="socio-item gasto"><span>${esc(g.descripcion||tipoLabel[g.tipo]||'Gasto')}</span><span class="v">−${fmt(g.monto)}</span></div>`).join('')
+    : '<div class="socio-empty">Sin gastos en el período.</div>';
+  return `
+    <div class="socio-card">
+      <div class="socio-card-head">
+        <span class="cob-tag ${colorClass}" style="font-size:11px;padding:4px 10px">${esc(nombre)}</span>
+      </div>
+      <div class="socio-card-sub">Ingresos</div>
+      ${ingresosHTML}
+      <div class="socio-total"><span>Total ingresos</span><span>${fmt(data.total_ingresos||0)}</span></div>
+      <div class="socio-card-sub">Gastos</div>
+      ${gastosHTML}
+      <div class="socio-total"><span>Total gastos</span><span>${fmt(data.total_gastos||0)}</span></div>
+      <div class="socio-queda"><span>Queda</span><span class="v">${fmt(data.saldo||0)}</span></div>
+    </div>`;
+}
+
+function renderPorSocioCorte(porSocio){
+  const cards = [
+    socioCardHTML('Emmanuel', 'emmanuel', porSocio.emmanuel),
+    socioCardHTML('Jeebe', 'jeebe', porSocio.jeebe),
+  ];
+  const banco = porSocio.banco || {}, sc = porSocio.sin_clasificar || {};
+  const extra = {
+    ingresos: [...(banco.ingresos||[]), ...(sc.ingresos||[])],
+    gastos:   [...(banco.gastos||[]),   ...(sc.gastos||[])],
+  };
+  extra.total_ingresos = (banco.total_ingresos||0) + (sc.total_ingresos||0);
+  extra.total_gastos   = (banco.total_gastos||0)   + (sc.total_gastos||0);
+  extra.saldo          = extra.total_ingresos - extra.total_gastos;
+  if(extra.ingresos.length || extra.gastos.length){
+    cards.push(socioCardHTML('Banco / sin clasificar', 'banco', extra));
+  }
+  document.getElementById('corte-por-socio').innerHTML = cards.join('');
 }
 
 function sugerir4040(){
@@ -1471,10 +1877,15 @@ async function loadCorteHist(){
         <div class="chi-dist">
           <div>Ingresos: <span>${fmt(c.total_ingresos)}</span></div>
           <div>Gastos: <span>${fmt(c.total_gastos)}</span></div>
-          <div>Emmanuel: <span>${fmt(c.reparto_emmanuel)}</span></div>
-          <div>Jeebe: <span>${fmt(c.reparto_jeebe)}</span></div>
+          <div>Emmanuel lleva: <span>${fmt(c.reparto_emmanuel)}</span></div>
+          <div>Jeebe lleva: <span>${fmt(c.reparto_jeebe)}</span></div>
           <div>Ahorro: <span>${fmt(c.fondo_ahorro)}</span></div>
         </div>
+        ${c.ingresos_emmanuel!=null ? `
+        <div class="chi-dist" style="margin-top:6px">
+          <div>Emmanuel — cobró: <span>${fmt(c.ingresos_emmanuel)}</span> · gastó: <span>${fmt(c.gastos_emmanuel)}</span></div>
+          <div>Jeebe — cobró: <span>${fmt(c.ingresos_jeebe)}</span> · gastó: <span>${fmt(c.gastos_jeebe)}</span></div>
+        </div>` : ''}
       </div>`).join('');
   }catch(e){}
 }
@@ -1483,6 +1894,7 @@ async function loadCorteHist(){
 loadResumen();
 loadCotizaciones();
 loadClientesFin();
+aplicarSoyDefaults();
 </script>
 </body>
 </html>

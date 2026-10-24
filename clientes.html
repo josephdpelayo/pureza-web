@@ -139,15 +139,25 @@ html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-hei
 .detail-empty{text-align:center;padding:60px 20px;color:var(--gray);font-size:13px;font-weight:600}
 .field{margin-bottom:12px}
 .field label{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:4px}
-.field input,.field textarea{
+.field input,.field textarea,.field select{
   width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
   font-size:13px;font-family:var(--font);color:var(--text);outline:none;
   background:var(--white);transition:border-color .15s;
 }
 .field textarea{resize:vertical;min-height:60px}
-.field input:focus,.field textarea:focus{border-color:var(--blue-mid)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--blue-mid)}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
+
+.mas-opciones{margin-bottom:16px}
+.mas-opciones summary{
+  font-size:11px;font-weight:700;color:var(--gray);cursor:pointer;
+  padding:6px 0;list-style:none;
+}
+.mas-opciones summary::-webkit-details-marker{display:none}
+.mas-opciones summary::before{content:'▸ ';display:inline-block}
+.mas-opciones[open] summary::before{content:'▾ '}
+.mas-opciones .field:first-of-type{margin-top:10px}
 
 .detail-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 .btn-guardar{
@@ -273,6 +283,51 @@ html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-hei
           <label>Notas</label>
           <textarea id="cd-notas" placeholder="Preferencias, referencias, detalles del servicio…"></textarea>
         </div>
+
+        <details class="mas-opciones">
+          <summary>Datos fiscales (para facturar)</summary>
+          <div class="field-row">
+            <div class="field">
+              <label>RFC</label>
+              <input type="text" id="cd-rfc" placeholder="XAXX010101000" style="text-transform:uppercase">
+            </div>
+            <div class="field">
+              <label>Código postal</label>
+              <input type="text" id="cd-cp" placeholder="80000" maxlength="5">
+            </div>
+          </div>
+          <div class="field">
+            <label>Régimen fiscal</label>
+            <select id="cd-regimen">
+              <option value="">Selecciona…</option>
+              <option value="601">601 · General de Ley Personas Morales</option>
+              <option value="603">603 · Personas Morales con Fines no Lucrativos</option>
+              <option value="605">605 · Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
+              <option value="606">606 · Arrendamiento</option>
+              <option value="608">608 · Demás ingresos</option>
+              <option value="612">612 · Personas Físicas con Actividades Empresariales y Profesionales</option>
+              <option value="616">616 · Sin obligaciones fiscales</option>
+              <option value="621">621 · Incorporación Fiscal</option>
+              <option value="625">625 · Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>
+              <option value="626">626 · Régimen Simplificado de Confianza</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Uso de CFDI</label>
+            <select id="cd-uso-cfdi">
+              <option value="">Selecciona…</option>
+              <option value="G01">G01 · Adquisición de mercancías</option>
+              <option value="G03">G03 · Gastos en general</option>
+              <option value="I08">I08 · Otra maquinaria y equipo</option>
+              <option value="S01">S01 · Sin efectos fiscales</option>
+              <option value="CP01">CP01 · Pagos</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Email de facturación</label>
+            <input type="email" id="cd-email-fact" placeholder="cliente@correo.com">
+          </div>
+        </details>
 
         <button class="btn-calc" id="cd-calc-traslado" onclick="calcularTraslado()">📍 Ver en Google Maps</button>
         <div id="cd-traslado-result"></div>
@@ -429,6 +484,11 @@ function nuevoCliente(){
   document.getElementById('cd-domicilio').value = '';
   document.getElementById('cd-telefono').value = '';
   document.getElementById('cd-notas').value = '';
+  document.getElementById('cd-rfc').value = '';
+  document.getElementById('cd-cp').value = '';
+  document.getElementById('cd-regimen').value = '';
+  document.getElementById('cd-uso-cfdi').value = '';
+  document.getElementById('cd-email-fact').value = '';
   document.getElementById('cd-traslado-result').innerHTML = '';
   document.getElementById('cd-eliminar').style.display = 'none';
   document.getElementById('cd-historial-wrap').style.display = 'none';
@@ -456,6 +516,11 @@ async function abrirCliente(id){
     document.getElementById('cd-domicilio').value = c.domicilio || '';
     document.getElementById('cd-telefono').value = c.telefono || '';
     document.getElementById('cd-notas').value = c.notas || '';
+    document.getElementById('cd-rfc').value = c.rfc || '';
+    document.getElementById('cd-cp').value = c.codigo_postal || '';
+    document.getElementById('cd-regimen').value = c.regimen_fiscal || '';
+    document.getElementById('cd-uso-cfdi').value = c.uso_cfdi || '';
+    document.getElementById('cd-email-fact').value = c.email_facturacion || '';
     renderHistorial(d.cotizaciones||[], d.servicios||[]);
   }catch(e){
     showToast('Error al cargar cliente', 'red');
@@ -510,6 +575,11 @@ async function guardarCliente(){
     domicilio: document.getElementById('cd-domicilio').value.trim() || null,
     telefono: document.getElementById('cd-telefono').value.trim() || null,
     notas: document.getElementById('cd-notas').value.trim() || null,
+    rfc: document.getElementById('cd-rfc').value.trim() || null,
+    codigo_postal: document.getElementById('cd-cp').value.trim() || null,
+    regimen_fiscal: document.getElementById('cd-regimen').value || null,
+    uso_cfdi: document.getElementById('cd-uso-cfdi').value || null,
+    email_facturacion: document.getElementById('cd-email-fact').value.trim() || null,
   };
   try{
     const r = await fetch('/api/clients', {
