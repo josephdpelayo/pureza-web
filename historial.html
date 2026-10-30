@@ -391,6 +391,14 @@ function fmtFecha(ts){
   return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
 }
 
+// Si el descuento equivale a un porcentaje redondo del subtotal, se muestra "(10%)".
+function descPctLabel(c){
+  const sub = Number(c.subtotal)||0, desc = Number(c.descuento)||0;
+  if(sub<=0 || desc<=0) return '';
+  const pct = desc/sub*100;
+  return Math.abs(pct-Math.round(pct)) < 0.01 ? ` (${Math.round(pct)}%)` : '';
+}
+
 function cotCard(c){
   const items = Array.isArray(c.items) ? c.items : [];
   const rowsHtml = items.map(i=>
@@ -403,7 +411,7 @@ function cotCard(c){
   ).join('');
 
   const descRow = Number(c.descuento) > 0
-    ? `<div class="cot-totals-row"><span>Descuento</span><span>-${fmt$(c.descuento)}</span></div>`
+    ? `<div class="cot-totals-row"><span>Descuento${descPctLabel(c)}</span><span>-${fmt$(c.descuento)}</span></div>`
     : '';
   const iva = Number(c.iva) || 0;
   const requiresInvoice = Boolean(c.requiere_factura) || iva > 0;
